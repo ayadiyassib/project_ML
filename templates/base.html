@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ML Studio | Atelier Machine Learning Polyvalent{% endblock %}</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN standalone) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        surface: {
+                            base: '#0b0f19',
+                            card: '#161b22',
+                            border: '#334155',
+                            muted: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- Alpine.js CDN -->
+    <script defer src="https://unpkg.com/alpinejs@3.13.10/dist/cdn.min.js"></script>
+
+    <!-- Plotly.js CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.31.1.min.js"></script>
+
+    <!-- KaTeX CSS & JS for Math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Safe auto-render for KaTeX math
+            function initKaTeX() {
+                if (window.renderMathInElement) {
+                    try {
+                        renderMathInElement(document.body, {
+                            delimiters: [
+                                { left: '$$', right: '$$', display: true },
+                                { left: '$', right: '$', display: false }
+                            ],
+                            throwOnError: false
+                        });
+                    } catch (e) {
+                        console.warn("KaTeX render notice:", e);
+                    }
+                } else {
+                    setTimeout(initKaTeX, 150);
+                }
+            }
+            initKaTeX();
+        });
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Sidebar Navigation -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        
+        <!-- Topbar with Stepper & Status -->
+        {% include 'components/topbar.html' %}
+
+        <!-- Flash Messages & Toasts Container -->
+        {% include 'components/toasts.html' %}
+
+        <!-- Dynamic Main Scrollable View -->
+        <main class="flex-1 overflow-y-auto px-6 py-6 lg:px-10 lg:py-8" id="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Reusable Loading Indicator for HTMX calculations -->
+    {% include 'components/loader.html' %}
+
+    <!-- Interactive Onboarding Modal -->
+    {% include 'components/onboarding_modal.html' %}
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!-- Reusable Badge Partial -->
+{% if badge_type == 'numeric' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+    Numérique
+</span>
+{% elif badge_type == 'categorical' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+    Catégoriel
+</span>
+{% elif badge_type == 'target' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+    Variable Cible
+</span>
+{% elif badge_type == 'regression' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+    Régression
+</span>
+{% elif badge_type == 'classification' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+    Classification
+</span>
+{% elif badge_type == 'clustering' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+    Clustering
+</span>
+{% else %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+    {{ badge_label|default:"Info" }}
+</span>
+{% endif %}
+

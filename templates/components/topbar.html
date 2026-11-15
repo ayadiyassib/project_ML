@@ -1,0 +1,105 @@
+<!-- Topbar with n8n-style ML Pipeline Stepper -->
+<header class="h-16 bg-[#0f1420] border-b border-slate-800/80 px-6 flex items-center justify-between shrink-0 z-20">
+    
+    <!-- Mobile hamburger button & Breadcrumb -->
+    <div class="flex items-center space-x-3">
+        <button @click="sidebarOpen = !sidebarOpen" class="text-slate-400 hover:text-white p-1 rounded-md focus:outline-none md:hidden">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <div class="hidden sm:flex items-center space-x-2 text-xs font-medium text-slate-400">
+            <span class="text-slate-300 font-semibold">Workspace</span>
+            <span>/</span>
+            <span class="text-indigo-400 font-mono">{{ project.dataset_name|default:"Projet Initial" }}</span>
+        </div>
+    </div>
+
+    <!-- Stepper Navigation (n8n Style) -->
+    <nav class="hidden lg:flex items-center space-x-1.5 bg-slate-900/90 border border-slate-800/90 px-3.5 py-1.5 rounded-xl shadow-inner">
+        
+        <!-- Step 1: Dataset -->
+        <a href="{% url 'datasets:index' %}" 
+           class="flex items-center space-x-1.5 text-xs font-medium px-2 py-1 rounded-lg transition-colors {% if current_step == 1 %}bg-indigo-600 text-white shadow-sm{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold {% if current_step == 1 %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">1</span>
+            <span>Dataset</span>
+        </a>
+        <span class="text-slate-600 text-xs font-mono">&rarr;</span>
+
+        <!-- Step 2: EDA -->
+        <a href="{% url 'eda:index' %}" 
+           class="flex items-center space-x-1.5 text-xs font-medium px-2 py-1 rounded-lg transition-colors {% if current_step == 2 %}bg-indigo-600 text-white shadow-sm{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold {% if current_step == 2 %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">2</span>
+            <span>EDA</span>
+        </a>
+        <span class="text-slate-600 text-xs font-mono">&rarr;</span>
+
+        <!-- Step 3: Preprocessing -->
+        <a href="{% url 'preprocessing:index' %}" 
+           class="flex items-center space-x-1.5 text-xs font-medium px-2 py-1 rounded-lg transition-colors {% if current_step == 3 %}bg-indigo-600 text-white shadow-sm{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold {% if current_step == 3 %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">3</span>
+            <span>Prétraitement</span>
+        </a>
+        <span class="text-slate-600 text-xs font-mono">&rarr;</span>
+
+        <!-- Step 4: ML Models -->
+        <a href="{% url 'ml_engine:index' %}" 
+           class="flex items-center space-x-1.5 text-xs font-medium px-2 py-1 rounded-lg transition-colors {% if current_step == 4 %}bg-indigo-600 text-white shadow-sm{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold {% if current_step == 4 %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">4</span>
+            <span>Modélisation</span>
+        </a>
+        <span class="text-slate-600 text-xs font-mono">&rarr;</span>
+
+        <!-- Step 5: Diagnostics -->
+        <a href="{% url 'model_viz:index' %}" 
+           class="flex items-center space-x-1.5 text-xs font-medium px-2 py-1 rounded-lg transition-colors {% if current_step == 5 %}bg-indigo-600 text-white shadow-sm{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold {% if current_step == 5 %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">5</span>
+            <span>Évaluation</span>
+        </a>
+        <span class="text-slate-600 text-xs font-mono">&rarr;</span>
+
+        <!-- Step 6: Export & Inference -->
+        <a href="{% url 'export_inference:index' %}" 
+           class="flex items-center space-x-1.5 text-xs font-medium px-2 py-1 rounded-lg transition-colors {% if current_step == 6 %}bg-indigo-600 text-white shadow-sm{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/50{% endif %}">
+            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold {% if current_step == 6 %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">6</span>
+            <span>Inférence</span>
+        </a>
+    </nav>
+
+    <!-- Right Quick Actions -->
+    <div class="flex items-center space-x-3">
+        <!-- Tour / Onboarding Button -->
+        <button type="button" 
+                @click="$dispatch('open-onboarding')"
+                title="Guide interactif de démarrage"
+                class="flex items-center space-x-1 text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-1.5 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="hidden sm:inline">Guide Rapide</span>
+        </button>
+
+        <!-- New / Reset Session Button -->
+        <form method="post" action="{% url 'core:reset_session' %}">
+            {% csrf_token %}
+            <button type="submit" 
+                    title="Réinitialiser l'état du studio"
+                    onclick="return confirm('Voulez-vous vraiment réinitialiser le projet actuel ?')"
+                    class="flex items-center space-x-1 text-xs text-slate-400 hover:text-rose-400 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 px-2.5 py-1.5 rounded-lg transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span class="hidden sm:inline">Reset</span>
+            </button>
+        </form>
+
+        <!-- Help & Docs quick button -->
+        <a href="{% url 'docs_tutorials:index' %}" 
+           class="flex items-center space-x-1 text-xs font-medium text-slate-300 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 px-3 py-1.5 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span class="hidden sm:inline">Docs ML</span>
+        </a>
+    </div>
+</header>

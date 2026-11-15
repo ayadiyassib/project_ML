@@ -24,29 +24,29 @@ En tant que **Membre 1**, vous êtes le garant de la cohérence technique, visue
 ## 📋 Liste Détaillée des Tâches (Roadmap Membre 1)
 
 ### Phase 1 : Initialisation de l'Architecture & Environnement Django
-- [ ] **Tâche 1.1 : Initialisation du Projet Django**
+- [x] **Tâche 1.1 : Initialisation du Projet Django**
   - Créer l'environnement virtuel Python, installer Django 5.x et configurer la structure modulaire de répertoires (`apps/`).
   - Configurer `settings.py` pour séparer les répertoires d'applications, déclarer `STATICFILES_DIRS`, `MEDIA_ROOT`, et activer le support des sessions.
   - Définir le fichier `.gitignore` professionnel pour Python/Django (exclure `.venv`, `__pycache__`, fichiers temporaires SQLite/media).
-- [ ] **Tâche 1.2 : Mise en Place du Design System Moderne**
+- [x] **Tâche 1.2 : Mise en Place du Design System Moderne**
   - Intégrer Tailwind CSS (via CDN optimisé ou CLI autonome) avec typographie soignée (police Google Inter ou Geist).
   - Configurer la palette de couleurs en Dark Mode (inspiré de **Linear** : `#0b0f19`, `#161b22`, accents Indigo `#6366f1`) et Light Mode (inspiré de **Notion**).
   - Créer `templates/base.html` qui servira de squelette pour tous les écrans (sidebar repliable, navbar avec indicateur de projet, conteneur principal responsive, zone de notifications toasts).
-- [ ] **Tâche 1.3 : Intégration de HTMX et Alpine.js**
+- [x] **Tâche 1.3 : Intégration de HTMX et Alpine.js**
   - Charger HTMX et Alpine.js directement sans dépendance Node.js/npm.
   - Préparer les templates pour le rechargement partiel (swap dynamique) sans jamais rafraîchir la page entière.
 
 ### Phase 2 : Workflow Global & Expérience Utilisateur (Stepper n8n-style)
-- [ ] **Tâche 2.1 : Composant Stepper Interactif**
+- [x] **Tâche 2.1 : Composant Stepper Interactif**
   - Implémenter le composant de navigation par étapes en haut de chaque page :
     $$\text{1. Dataset} \longrightarrow \text{2. EDA} \longrightarrow \text{3. Prétraitement} \longrightarrow \text{4. Modélisation} \longrightarrow \text{5. Évaluation} \longrightarrow \text{6. Export \& Inférence}$$
   - Mettre en surbrillance l'étape active, griser les étapes futures tant que le dataset n'est pas encore prêt.
-- [ ] **Tâche 2.2 : Gestion de l'État du Projet & Session Utilisateur**
+- [x] **Tâche 2.2 : Gestion de l'État du Projet & Session Utilisateur**
   - Implémenter un gestionnaire de contexte (`context_processors.py`) qui injecte en permanence dans les templates :
     - Le dataset actuellement actif en session.
     - L'état d'avancement (Nettoyage fait ? Modèle entraîné ?).
     - Les messages d'alertes / flash notifications (succès, avertissement, erreur).
-- [ ] **Tâche 2.3 : Bibliothèque de Composants Réutilisables**
+- [x] **Tâche 2.3 : Bibliothèque de Composants Réutilisables**
   - Créer des fragments dans `templates/components/` :
     - `card.html` : Carte avec bordure discrète, ombrage subtil et titre stylisé.
     - `badge.html` : Badges colorés pour types de colonnes (`numérique`, `catégoriel`, `cible`).
@@ -55,7 +55,7 @@ En tant que **Membre 1**, vous êtes le garant de la cohérence technique, visue
     - `loader.html` : Spinner d'attente animé lors des calculs lourds de Machine Learning.
 
 ### Phase 3 : Module 8 — Documentation & Tutoriels Intégrés (Exigence Sujet)
-- [ ] **Tâche 3.1 : Centre Documentaire "ML Academy" (Style Notion Docs)**
+- [x] **Tâche 3.1 : Centre Documentaire "ML Academy" (Style Notion Docs)**
   - Créer une section dédiée `/docs/` accessible depuis la sidebar.
   - Implémenter un moteur de lecture de fichiers Markdown en Python (`markdown` + `codehilite` + KaTeX pour les formules mathématiques).
   - Rédiger les fiches théoriques complètes pour les 11 algorithmes requis par le sujet :
@@ -68,7 +68,7 @@ En tant que **Membre 1**, vous êtes le garant de la cohérence technique, visue
     7. K-Plus Proches Voisins (KNN) : métriques de distance (euclidienne, manhattan), choix de $k$.
     8. K-Means : minimisation de l'inertie intra-cluster, méthode du coude (Elbow).
     9. Réseaux de Neurones Artificiels (MLP) : perceptron multicouche, rétropropagation du gradient, fonctions d'activation (ReLU, Sigmoid, Tanh).
-- [ ] **Tâche 3.2 : Tutoriels Guidés et Démonstrations Pas-à-Pas**
+- [x] **Tâche 3.2 : Tutoriels Guidés et Démonstrations Pas-à-Pas**
   - Concevoir un parcours guidé pour 3 cas d'usage réels :
     - *Tutoriel 1 (Régression) :* Prédire le prix d'un logement (Dataset Housing) avec la Régression Linéaire et Polynomiale.
     - *Tutoriel 2 (Classification) :* Diagnostiquer une maladie ou prédire la survie (Dataset Titanic/Iris) avec Random Forest et SVM.
@@ -76,9 +76,9 @@ En tant que **Membre 1**, vous êtes le garant de la cohérence technique, visue
   - Créer un modal interactif d'onboarding lors de la première visite ("Guide de démarrage rapide").
 
 ### Phase 4 : Finitions, Tests d'Intégration & Packaging
-- [ ] **Tâche 4.1 : Test de la Navigation de Bout en Bout**
+- [x] **Tâche 4.1 : Test de la Navigation de Bout en Bout**
   - Vérifier que les redirections entre les pages créées par les membres 2, 3 et 4 fonctionnent sans accroc.
-- [ ] **Tâche 4.2 : Responsive Design & Finition Visuelle**
+- [x] **Tâche 4.2 : Responsive Design & Finition Visuelle**
   - Vérifier l'affichage sur différentes résolutions d'écran (laptop, desktop grand écran).
   - Polir les micro-interactions (hover, transitions douces, focus ring sur les inputs).
 
@@ -157,8 +157,8 @@ Pour que les modules des Membres 2, 3 et 4 communiquent sans heurts, vous défin
 ---
 
 ## 🏆 Critères de Réussite & Check-list d'Évaluation
-- [ ] L'application démarre immédiatement avec un simple `python manage.py runserver`.
-- [ ] Le design a un rendu propre, aéré et professionnel (inspiré de Linear/Notion).
-- [ ] La documentation explique rigoureusement les 11 algorithmes du sujet avec leurs formules.
-- [ ] L'utilisateur comprend intuitivement où il se situe dans le workflow grâce au stepper.
+- [x] L'application démarre immédiatement avec un simple `python manage.py runserver`.
+- [x] Le design a un rendu propre, aéré et professionnel (inspiré de Linear/Notion).
+- [x] La documentation explique rigoureusement les 11 algorithmes du sujet avec leurs formules.
+- [x] L'utilisateur comprend intuitivement où il se situe dans le workflow grâce au stepper.
 

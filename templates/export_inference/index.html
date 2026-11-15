@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Export & Inférence | ML Studio{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    <div class="flex items-center justify-between pb-6 border-b border-slate-800">
+        <div>
+            <div class="inline-flex items-center space-x-2 text-xs font-mono text-indigo-400 mb-1">
+                <span>ÉTAPE 06</span>
+                <span>&bull;</span>
+                <span>MODULE EXPORT & INFERENCE</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Export de Modèle & Inférence en Direct</h1>
+            <p class="text-slate-400 text-xs mt-1">Téléchargez le pipeline entraîné (.joblib), testez des prédictions en direct et compilez le rapport d'audit PDF.</p>
+        </div>
+    </div>
+
+    <!-- Placeholder Card for Member 4 -->
+    <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-8 text-center space-y-4">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-white">Zone d'Export & Playground d'Inférence</h3>
+        <p class="text-xs text-slate-400 max-w-md mx-auto">
+            Ce module permettra de générer des prédictions interactives instantanées via un formulaire dynamique généré à partir des caractéristiques du modèle, d'exporter le fichier .joblib et de télécharger le rapport d'évaluation au format PDF (100% Python via xhtml2pdf).
+        </p>
+        <div class="pt-4">
+            <a href="{% url 'core:dashboard' %}" class="inline-flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300">
+                &larr; Retour au Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

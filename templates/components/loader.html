@@ -1,0 +1,26 @@
+<!-- Reusable Loading Spinner for HTMX long calculations -->
+<div id="loading-spinner" 
+     class="htmx-indicator fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex-col items-center justify-center space-y-4"
+     style="display: none !important; pointer-events: none !important;">
+    <div class="relative w-16 h-16">
+        <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+        <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+    </div>
+    <div class="text-center space-y-1">
+        <p class="text-sm font-semibold text-white tracking-wide">Calculs en cours...</p>
+        <p class="text-xs text-slate-400">Entraînement de l'algorithme et évaluation des métriques Scikit-Learn</p>
+    </div>
+</div>
+
+<style>
+    #loading-spinner {
+        display: none !important;
+        pointer-events: none !important;
+    }
+    .htmx-request#loading-spinner,
+    .htmx-request #loading-spinner,
+    body.htmx-request #loading-spinner {
+        display: flex !important;
+        pointer-events: auto !important;
+    }
+</style>
