@@ -1,38 +1,484 @@
 {% extends 'base.html' %}
 
-{% block title %}Prétraitement | ML Studio{% endblock %}
+{% block title %}Prétraitement & Feature Engineering | ML Studio{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-6">
-    <div class="flex items-center justify-between pb-6 border-b border-slate-800">
-        <div>
-            <div class="inline-flex items-center space-x-2 text-xs font-mono text-indigo-400 mb-1">
-                <span>ÉTAPE 03</span>
-                <span>&bull;</span>
-                <span>MODULE PIPELINE</span>
-            </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">Nettoyage & Prétraitement des Données</h1>
-            <p class="text-slate-400 text-xs mt-1">Imputation des valeurs manquantes, encodage des variables qualitatives et mise à l'échelle sans data leakage.</p>
-        </div>
-    </div>
+<div class="max-w-[1500px] mx-auto space-y-6">
+    {{ task_map|json_script:"task-map" }}
 
-    <!-- Placeholder Card for Member 2 -->
-    <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-8 text-center space-y-4">
-        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-6 border-b border-slate-800">
+        <div>
+            <div class="inline-flex items-center gap-2 text-[11px] font-mono mb-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">ÉTAPE 03</span>
+                <span class="text-slate-600">·</span>
+                <span class="text-slate-500 uppercase tracking-wider">Module Prétraitement</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Prétraitement & Feature Engineering</h1>
+            <p class="text-slate-400 text-xs mt-1 max-w-2xl">
+                Imputation, encodage, normalisation et découpage train/test.
+                Toutes les statistiques sont calculées sur le train uniquement : aucune fuite de données.
+            </p>
         </div>
-        <h3 class="text-lg font-semibold text-white">Zone de Prétraitement Scikit-Learn</h3>
-        <p class="text-xs text-slate-400 max-w-md mx-auto">
-            Ce module construira le `ColumnTransformer` propre, gérera la séparation Train/Test et appliquera les transformations adaptées aux types de variables.
-        </p>
-        <div class="pt-4">
-            <a href="{% url 'core:dashboard' %}" class="inline-flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300">
-                &larr; Retour au Dashboard
+        {% if dataset %}
+        <div class="flex items-center gap-2 shrink-0">
+            <a href="{% url 'datasets:index' %}"
+               class="text-[11px] text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-lg transition-colors">
+                Changer de dataset
+            </a>
+            <a href="{% url 'ml_engine:index' %}"
+               class="flex items-center gap-1.5 text-[11px] font-medium text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg transition-colors">
+                Modélisation
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
             </a>
         </div>
+        {% endif %}
     </div>
+
+    {% if not dataset %}
+    <!-- No active dataset -->
+    <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-10 text-center max-w-2xl mx-auto">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+        </div>
+        <h3 class="text-base font-semibold text-white">Aucun jeu de données actif</h3>
+        <p class="text-xs text-slate-400 mt-2 max-w-md mx-auto">
+            Le prétraitement a besoin d'un dataset. Chargez un fichier ou choisissez un jeu de démonstration
+            pour configurer vos variables, votre cible et votre pipeline.
+        </p>
+        <a href="{% url 'datasets:index' %}"
+           class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors">
+            Aller à l'ingestion
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+        </a>
+    </div>
+
+    {% else %}
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- ================= FORM ================= -->
+        <form method="post" action="{% url 'preprocessing:apply' %}" id="prep-form" class="xl:col-span-2 space-y-5">
+            {% csrf_token %}
+
+            <!-- 1. Target & features -->
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-5 h-5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-bold flex items-center justify-center">1</span>
+                        <h3 class="text-sm font-semibold text-white tracking-tight">Cible & variables explicatives</h3>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500">{{ dataset.n_rows }} × {{ dataset.n_cols }}</span>
+                </div>
+
+                <div class="p-5 space-y-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_target" class="block text-[11px] font-medium text-slate-300 mb-1.5">Variable cible (y)</label>
+                            <select id="id_target" name="target"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                <option value="" {% if not config.target %}selected{% endif %}>Aucune — clustering non supervisé</option>
+                                {% for column in profile.columns %}
+                                <option value="{{ column.name }}" {% if column.name == config.target %}selected{% endif %}>{{ column.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <p class="text-[10px] text-slate-500 mt-1">Choisissez « Aucune » pour du clustering (K-Means).</p>
+                        </div>
+                        <div>
+                            <label for="id_task_type" class="block text-[11px] font-medium text-slate-300 mb-1.5">Type de tâche</label>
+                            <select id="id_task_type" name="task_type"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label, hint in task_options %}
+                                <option value="{{ value }}" {% if value == config.task_type %}selected{% endif %} title="{{ hint }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <p class="text-[10px] text-slate-500 mt-1">Détecté automatiquement, modifiable si besoin.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-[11px] font-medium text-slate-300">
+                                Variables explicatives (X)
+                                <span id="feature-count" class="ml-1 font-mono text-[10px] text-indigo-400">{{ selected_count }}</span>
+                                <span class="text-[10px] text-slate-500">/ {{ profile.cols }}</span>
+                            </label>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" id="select-recommended"
+                                        class="px-2 py-1 rounded-md text-[10px] text-indigo-400 hover:text-white hover:bg-indigo-600/70 border border-indigo-500/30 transition-colors">
+                                    Sélection recommandée
+                                </button>
+                                <button type="button" id="select-all"
+                                        class="px-2 py-1 rounded-md text-[10px] text-slate-400 hover:text-white hover:bg-slate-700 border border-slate-700 transition-colors">
+                                    Tout
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-[360px] overflow-y-auto pr-1">
+                            {% for option in options %}
+                            <label class="flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-colors
+                                          {% if option.is_target %}border-emerald-500/30 bg-emerald-500/[0.05] opacity-70 cursor-not-allowed
+                                          {% else %}border-slate-800 bg-slate-900/30 hover:border-slate-700{% endif %}">
+                                <input type="checkbox" name="features" value="{{ option.name }}"
+                                       data-preselected="{% if option.selected %}1{% else %}0{% endif %}"
+                                       {% if option.selected %}checked{% endif %}
+                                       {% if option.is_target %}disabled{% endif %}
+                                       class="mt-0.5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/40">
+                                <span class="min-w-0 flex-1">
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="font-mono text-[11px] text-slate-200 truncate">{{ option.name }}</span>
+                                        {% include 'datasets/_kind_badge.html' with kind=option.kind %}
+                                    </span>
+                                    {% if option.is_target %}
+                                    <span class="block text-[10px] text-emerald-400/80 mt-0.5">Variable cible</span>
+                                    {% elif option.note %}
+                                    <span class="block text-[10px] text-amber-400/80 mt-0.5">{{ option.note }}</span>
+                                    {% else %}
+                                    <span class="block text-[10px] text-slate-500 mt-0.5">{{ option.unique }} modalités &bull; {{ option.missing_pct }}% manquant</span>
+                                    {% endif %}
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Missing values -->
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-5 h-5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-bold flex items-center justify-center">2</span>
+                        <h3 class="text-sm font-semibold text-white tracking-tight">Valeurs manquantes & doublons</h3>
+                    </div>
+                    <span class="text-[10px] font-mono {% if profile.missing_cells %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                        {{ profile.missing_cells }} cellules vides
+                    </span>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_numeric_strategy" class="block text-[11px] font-medium text-slate-300 mb-1.5">Colonnes numériques</label>
+                            <select id="id_numeric_strategy" name="numeric_strategy"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label, hint in numeric_options %}
+                                <option value="{{ value }}" {% if value == config.numeric_strategy %}selected{% endif %} title="{{ hint }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="id_categorical_strategy" class="block text-[11px] font-medium text-slate-300 mb-1.5">Colonnes catégorielles</label>
+                            <select id="id_categorical_strategy" name="categorical_strategy"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label, hint in categorical_options %}
+                                <option value="{{ value }}" {% if value == config.categorical_strategy %}selected{% endif %} title="{{ hint }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_constant_value" class="block text-[11px] font-medium text-slate-300 mb-1.5">Valeur de remplacement (catégoriel)</label>
+                            <input type="text" id="id_constant_value" name="constant_value" value="{{ config.constant_value }}"
+                                   class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="id_missing_threshold" class="block text-[11px] font-medium text-slate-300 mb-1.5">Colonnes trop incomplètes</label>
+                            <select id="id_missing_threshold" name="missing_threshold"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label in threshold_options %}
+                                <option value="{{ value }}" {% if value == config.missing_threshold|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-800 bg-slate-900/30 cursor-pointer">
+                        <input type="checkbox" name="drop_duplicates" {% if config.drop_duplicates %}checked{% endif %}
+                               class="rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/40">
+                        <span class="text-[11px] text-slate-300">Supprimer les lignes dupliquées
+                            <span class="text-slate-500 font-mono">({{ profile.duplicates }} détectée(s))</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. Encoding, scaling, split -->
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-5 h-5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-bold flex items-center justify-center">3</span>
+                        <h3 class="text-sm font-semibold text-white tracking-tight">Outliers, encodage & découpage</h3>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500">{{ profile.numeric_count }} num &bull; {{ profile.categorical_count }} cat</span>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="sm:col-span-2">
+                            <label for="id_outlier_method" class="block text-[11px] font-medium text-slate-300 mb-1.5">Valeurs aberrantes (IQR)</label>
+                            <select id="id_outlier_method" name="outlier_method"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label, hint in outlier_options %}
+                                <option value="{{ value }}" {% if value == config.outlier_method %}selected{% endif %} title="{{ hint }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="id_outlier_factor" class="block text-[11px] font-medium text-slate-300 mb-1.5">Facteur IQR</label>
+                            <input type="number" id="id_outlier_factor" name="outlier_factor" value="{{ config.outlier_factor }}"
+                                   min="0.5" max="5" step="0.5"
+                                   class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_encoder" class="block text-[11px] font-medium text-slate-300 mb-1.5">Encodage des catégories</label>
+                            <select id="id_encoder" name="encoder"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label, hint in encoder_options %}
+                                <option value="{{ value }}" {% if value == config.encoder %}selected{% endif %} title="{{ hint }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="id_scaler" class="block text-[11px] font-medium text-slate-300 mb-1.5">Normalisation</label>
+                            <select id="id_scaler" name="scaler"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label, hint in scaler_options %}
+                                <option value="{{ value }}" {% if value == config.scaler %}selected{% endif %} title="{{ hint }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                        <div>
+                            <label for="id_test_size" class="block text-[11px] font-medium text-slate-300 mb-1.5">Découpage train / test</label>
+                            <select id="id_test_size" name="test_size"
+                                    class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                                {% for value, label in test_size_options %}
+                                <option value="{{ value }}" {% if value == config.test_size|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <label class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-800 bg-slate-900/30 cursor-pointer">
+                            <input type="checkbox" name="stratify" {% if config.stratify %}checked{% endif %}
+                                   class="rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/40">
+                            <span class="text-[11px] text-slate-300">Stratifier (classification)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#161b22] border border-slate-800 rounded-2xl px-5 py-4">
+                <p class="text-[10px] text-slate-500 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Pipeline ajusté sur le train uniquement — pas de data leakage.
+                </p>
+                <button type="submit" id="prep-submit"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors disabled:opacity-60 disabled:cursor-wait">
+                    Appliquer le prétraitement
+                </button>
+            </div>
+        </form>
+
+        <!-- ================= SIDE PANEL ================= -->
+        <div class="space-y-5">
+
+            <!-- Dataset recap -->
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-5">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-3">Jeu de données actif</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-white truncate">{{ dataset.name }}</p>
+                        <p class="text-[10px] text-slate-500 font-mono">{{ profile.rows_display }} lignes &bull; {{ profile.cols }} colonnes</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                    <div class="rounded-lg bg-slate-900/60 border border-slate-800 py-2">
+                        <p class="text-[10px] text-slate-500">num</p>
+                        <p class="text-sm font-mono font-semibold text-blue-400">{{ profile.numeric_count }}</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-900/60 border border-slate-800 py-2">
+                        <p class="text-[10px] text-slate-500">cat</p>
+                        <p class="text-sm font-mono font-semibold text-purple-400">{{ profile.categorical_count }}</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-900/60 border border-slate-800 py-2">
+                        <p class="text-[10px] text-slate-500">complétude</p>
+                        <p class="text-sm font-mono font-semibold {% if profile.completeness >= 95 %}text-emerald-400{% else %}text-amber-400{% endif %}">{{ profile.completeness }}%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last run -->
+            {% if prepared %}
+            <div class="bg-[#161b22] border border-emerald-500/20 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-white tracking-tight">Dernier pipeline</h3>
+                    {% include 'components/badge.html' with badge_type=prepared.task_type %}
+                </div>
+
+                <dl class="space-y-2 text-[11px]">
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Train</dt>
+                        <dd class="font-mono text-slate-200">{{ prepared.train_rows }} × {{ prepared.feature_count }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Test</dt>
+                        <dd class="font-mono text-slate-200">{{ prepared.test_rows }} × {{ prepared.feature_count }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Variables brutes → encodées</dt>
+                        <dd class="font-mono text-slate-200">{{ prepared.raw_feature_count }} → {{ prepared.feature_count }}</dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt class="text-slate-500">Cible</dt>
+                        <dd class="font-mono text-slate-200">{{ prepared.target|default:"— (clustering)" }}</dd>
+                    </div>
+                </dl>
+
+                {% if prepared.class_distribution %}
+                <div class="mt-4 pt-4 border-t border-slate-800/80">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-2">Répartition des classes</p>
+                    <div class="space-y-1.5">
+                        {% for item in prepared.class_distribution %}
+                        <div class="flex items-center gap-2">
+                            <span class="w-16 truncate font-mono text-[10px] text-slate-400">{{ item.label }}</span>
+                            <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                                <div class="h-full rounded-full bg-indigo-500" style="width: {{ item.pct }}%"></div>
+                            </div>
+                            <span class="w-14 text-right font-mono text-[10px] text-slate-400">{{ item.count }} <span class="text-slate-600">({{ item.pct }}%)</span></span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if prepared.warnings %}
+                <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-1.5">
+                    {% for warning in prepared.warnings %}
+                    <p class="text-[10px] text-amber-400/90 flex items-start gap-1.5">
+                        <span class="text-amber-500 mt-px">•</span><span>{{ warning }}</span>
+                    </p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-2">
+                    <a href="{% url 'preprocessing:export' %}"
+                       class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-200 text-[11px] font-medium transition-colors">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Exporter les données nettoyées (.csv)
+                    </a>
+                    <a href="{% url 'preprocessing:pipeline' %}"
+                       class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-200 text-[11px] font-medium transition-colors">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        Pipeline .joblib
+                    </a>
+                    <form method="post" action="{% url 'preprocessing:reset' %}"
+                          onsubmit="return confirm('Supprimer le pipeline et les modèles entraînés ?');">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="w-full px-3 py-2 rounded-lg text-[11px] text-slate-500 hover:text-rose-400 hover:bg-rose-500/5 border border-transparent hover:border-rose-500/20 transition-colors">
+                            Réinitialiser les artefacts
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-[#161b22] border border-slate-800 border-dashed rounded-2xl p-6 text-center">
+                <p class="text-xs font-medium text-slate-300">Aucun pipeline ajusté</p>
+                <p class="text-[11px] text-slate-500 mt-1">
+                    Configurez les options puis lancez le prétraitement : les matrices
+                    <span class="font-mono">X_train / X_test</span> seront prêtes pour la modélisation.
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Leak-free explanation -->
+            <div class="bg-indigo-500/[0.05] border border-indigo-500/20 rounded-2xl p-5">
+                <h3 class="text-xs font-semibold text-indigo-300 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Pourquoi c'est sans fuite ?
+                </h3>
+                <ol class="mt-2 space-y-1.5 text-[10px] text-slate-400 list-decimal list-inside">
+                    <li>Le découpage train/test est effectué <span class="text-slate-200">avant</span> tout calcul statistique.</li>
+                    <li>Imputation, encodage et normalisation sont ajustés sur <span class="font-mono text-slate-200">X_train</span> seulement.</li>
+                    <li>Les bornes IQR des outliers sont estimées sur le train puis appliquées au test.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
+{% block extra_scripts %}
+{% if dataset %}
+<script>
+(function () {
+    const taskMap = JSON.parse(document.getElementById('task-map').textContent || '{}');
+    const targetSelect = document.getElementById('id_target');
+    const taskSelect = document.getElementById('id_task_type');
+    const checkboxes = Array.from(document.querySelectorAll('input[name="features"]:not(:disabled)'));
+    const counter = document.getElementById('feature-count');
+    const form = document.getElementById('prep-form');
+    const submit = document.getElementById('prep-submit');
+
+    function refreshCount() {
+        counter.textContent = checkboxes.filter((box) => box.checked).length;
+    }
+
+    if (targetSelect && taskSelect) {
+        targetSelect.addEventListener('change', function () {
+            const inferred = taskMap[targetSelect.value] || 'clustering';
+            taskSelect.value = inferred;
+        });
+    }
+
+    document.getElementById('select-all')?.addEventListener('click', function () {
+        checkboxes.forEach((box) => { box.checked = true; });
+        refreshCount();
+    });
+
+    document.getElementById('select-recommended')?.addEventListener('click', function () {
+        checkboxes.forEach((box) => { box.checked = box.dataset.preselected === '1'; });
+        refreshCount();
+    });
+
+    checkboxes.forEach((box) => box.addEventListener('change', refreshCount));
+
+    form?.addEventListener('submit', function () {
+        if (submit) {
+            submit.disabled = true;
+            submit.textContent = 'Calcul du pipeline…';
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

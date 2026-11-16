@@ -163,13 +163,17 @@ def _sniff_delimiter(sample: str) -> str:
     """Guess the CSV delimiter from a text sample."""
     if not sample.strip():
         return ","
+
+    first_line = sample.splitlines()[0]
+    counts = {delimiter: first_line.count(delimiter) for delimiter in _DELIMITERS}
+    by_count = max(counts, key=lambda key: counts[key]) if any(counts.values()) else ","
+
     try:
-        return csv.Sniffer().sniff(sample[: 64 * 1024], delimiters=_DELIMITERS).delimiter
+        sniffed = csv.Sniffer().sniff(sample[: 64 * 1024], delimiters=_DELIMITERS).delimiter
     except csv.Error:
-        first_line = sample.splitlines()[0]
-        counts = {delimiter: first_line.count(delimiter) for delimiter in _DELIMITERS}
-        best = max(counts, key=lambda key: counts[key])
-        return best if counts[best] else ","
+        return by_count
+    # Trust the sniffer only if the delimiter actually occurs on the header line.
+    return sniffed if counts.get(sniffed, 0) > 0 else by_count
 
 
 def _detect_encoding(raw: bytes) -> str:
@@ -335,6 +339,9 @@ def _finalize(dataset: Dataset) -> Dataset:
     """Read the file back, store row/column counts and column metadata."""
     frame = read_tabular(dataset.file.path)
     metadata = describe_columns(frame)
+    if dataset.task_hint == "clustering":
+        for column in metadata:
+            column["suggested_target"] = False
 
     dataset.n_rows = int(frame.shape[0])
     dataset.n_cols = int(frame.shape[1])
@@ -353,6 +360,7 @@ def create_dataset_from_file(
     source: str = Dataset.Source.UPLOAD,
     name: str | None = None,
     size_bytes: int | None = None,
+    task_hint: str = "",
 ) -> Dataset:
     """Persist an uploaded or downloaded file and profile it."""
     suffix = Path(filename).suffix.lower()
@@ -366,6 +374,7 @@ def create_dataset_from_file(
         name=name or Path(filename).name,
         original_filename=Path(filename).name,
         source=source,
+        task_hint=task_hint,
         size_bytes=size_bytes or 0,
     )
     dataset.save()
@@ -418,6 +427,10 @@ def create_dataset_from_sample(slug: str) -> Dataset:
         source=Dataset.Source.SAMPLE, original_filename=sample["filename"]
     ).first()
     if existing is not None:
+        if existing.task_hint != sample["task"]:
+            existing.task_hint = sample["task"]
+            existing.save(update_fields=["task_hint"])
+            _finalize(existing)
         return existing
 
     with path.open("rb") as handle:
@@ -427,6 +440,7 @@ def create_dataset_from_sample(slug: str) -> Dataset:
             source=Dataset.Source.SAMPLE,
             name=sample["title"],
             size_bytes=path.stat().st_size,
+            task_hint=sample["task"],
         )
 
 

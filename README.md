@@ -68,4 +68,74 @@ python manage.py runserver
 * `apps/model_viz/` : Visualisations diagnostiques (ROC, Confusion Matrix, Résidus, PCA).
 * `apps/export_inference/` : Inférence en direct, exports `.joblib` et rapports PDF.
 * `apps/docs_tutorials/` : Documentation intégrée et fiches théoriques avec KaTeX.
-* `sample_data/` : Datasets de test prêts à l'emploi (*Iris, Titanic, California Housing, Wine*).
+* `sample_data/` : Datasets de test prêts à l'emploi (*Iris, Titanic, California Housing, Wine, Mall Customers*).
+
+---
+
+## 🔌 Contrat de données (modules EDA, ML & Export)
+
+Les modules M3 (EDA) et M4 (ML / export) ne doivent **jamais relire le fichier source ni refaire le prétraitement** : ils consomment les artefacts produits par `apps/datasets` et `apps/preprocessing`.
+
+### 1. Dataset actif
+
+```python
+from apps.datasets.state import get_active_dataset
+
+dataset = get_active_dataset(request)          # Dataset | None
+frame   = apps.datasets.services.load_dataframe(dataset)  # DataFrame brut (copie)
+```
+
+La session ne contient que l'identifiant :
+
+```python
+request.session["project_state"] = {
+    "dataset_id": "…", "dataset_name": "Titanic", "total_rows": 891, "total_cols": 12,
+    "target_column": "Survived", "task_type": "classification",
+    "preprocessing_done": True, "model_trained": False,
+    "selected_model_name": None, "best_score": None, "active_step": 3,
+}
+```
+
+### 2. Artefacts de prétraitement
+
+Racine unique par projet : `media/projects/<dataset_id>/`
+
+| Fichier | Contenu |
+| --- | --- |
+| `prepared.joblib` | Objet `PreparedData` complet (matrices + métadonnées) |
+| `pipeline.joblib` | `ColumnTransformer` ajusté, à utiliser pour l'inférence |
+| `config.json` | `PreprocessingConfig` sérialisée (traçabilité) |
+
+```python
+from apps.preprocessing.services import load_prepared, load_pipeline, load_config
+
+prepared  = load_prepared(dataset)   # None si le prétraitement n'a pas encore tourné
+pipeline  = load_pipeline(dataset)   # None si absent
+config    = load_config(dataset)
+
+X_train, X_test = prepared.X_train, prepared.X_test   # numpy (ndarray)
+y_train, y_test = prepared.y_train, prepared.y_test   # pandas Series (None en clustering)
+```
+
+`PreparedData` expose aussi : `feature_names`, `raw_features`, `numeric_features`,
+`categorical_features`, `task_type`, `target`, `class_labels`, `class_distribution`,
+`warnings`, `dropped_columns`, `dropped_rows`, `df_clean` et `to_summary()`.
+
+> ⚠️ **Pas de fuite de données** : imputation, encodage, normalisation et bornes IQR sont ajustés sur `X_train` uniquement, puis appliqués à `X_test`. Le découpage train/test a lieu **avant** tout calcul statistique. Toute réutilisation doit passer par `pipeline.transform(...)`, jamais par un `fit` sur les données de test.
+
+### 3. Entraînement et inférence
+
+```python
+# M4 : entraînement
+model.fit(prepared.X_train, prepared.y_train)
+
+# M4 : inférence sur une ligne utilisateur (catégories inconnues gérées)
+row = pandas.DataFrame([{"Pclass": 3, "Sex": "female", "Age": 28.0, "Fare": 9.5}])
+X = pipeline.transform(row)   # même nombre de colonnes que prepared.n_features_out
+```
+
+### 4. Cycle de vie
+
+* `POST /preprocessing/apply/` recalcule et écrase les artefacts, puis met `preprocessing_done=True` et réinitialise l'état du modèle (`model_trained=False`).
+* `POST /preprocessing/reset/` supprime tout `media/projects/<dataset_id>/` (prétraitement **et** modèles entraînés).
+* Supprimer un `Dataset` supprime automatiquement son fichier et son dossier d'artefacts (signaux `post_delete`).

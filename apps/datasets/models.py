@@ -34,6 +34,12 @@ class Dataset(models.Model):
     size_bytes = models.PositiveBigIntegerField(default=0)
     n_rows = models.PositiveIntegerField(default=0)
     n_cols = models.PositiveIntegerField(default=0)
+    task_hint = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Tâche cible du jeu de démonstration : classification, regression ou clustering.",
+    )
     columns_meta = models.JSONField(
         default=list,
         blank=True,
@@ -71,6 +77,8 @@ class Dataset(models.Model):
     @property
     def target_hint(self) -> str | None:
         """Best guess of the target column, used to pre-fill the preprocessing form."""
+        if self.task_hint == "clustering":
+            return None
         for column in self.columns_meta or []:
             if column.get("suggested_target"):
                 return column["name"]

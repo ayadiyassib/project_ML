@@ -7,8 +7,8 @@ from apps.datasets.models import Dataset
 
 @admin.register(Dataset)
 class DatasetAdmin(admin.ModelAdmin):
-    list_display = ("name", "source", "n_rows", "n_cols", "memory_human", "created_at")
-    list_filter = ("source", "created_at")
+    list_display = ("name", "source", "task_hint", "n_rows", "n_cols", "memory_human", "created_at")
+    list_filter = ("source", "task_hint", "created_at")
     search_fields = ("name", "original_filename")
     readonly_fields = (
         "id",
