@@ -1,0 +1,16 @@
+{# Reusable badge for a functional column kind: numeric, categorical, boolean, datetime, text, empty #}
+{% if kind == 'numeric' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Numérique</span>
+{% elif kind == 'categorical' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">Catégoriel</span>
+{% elif kind == 'boolean' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Booléen</span>
+{% elif kind == 'datetime' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Date</span>
+{% elif kind == 'text' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-700/40 text-slate-300 border border-slate-600/60">Texte</span>
+{% elif kind == 'empty' %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">Vide</span>
+{% else %}
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700">{{ kind }}</span>
+{% endif %}

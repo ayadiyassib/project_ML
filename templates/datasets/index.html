@@ -3,36 +3,362 @@
 {% block title %}Datasets & Ingestion | ML Studio{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-6">
-    <div class="flex items-center justify-between pb-6 border-b border-slate-800">
+<div class="max-w-[1500px] mx-auto space-y-6" x-data="{ dragging: false, urlOpen: false, changeOpen: false }">
+
+    <!-- Page header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
-            <div class="inline-flex items-center space-x-2 text-xs font-mono text-indigo-400 mb-1">
-                <span>ÉTAPE 01</span>
-                <span>&bull;</span>
-                <span>MODULE INGESTION</span>
+            <div class="inline-flex items-center gap-2 text-[11px] font-mono mb-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">ÉTAPE 01</span>
+                <span class="text-slate-600">·</span>
+                <span class="text-slate-500 uppercase tracking-wider">Module Ingestion</span>
             </div>
             <h1 class="text-2xl font-bold text-white tracking-tight">Ingestion & Sélection de Datasets</h1>
-            <p class="text-slate-400 text-xs mt-1">Importez vos fichiers CSV, Excel ou JSON, ou démarrez directement avec les jeux de données de référence.</p>
+            <p class="text-slate-400 text-xs mt-1 max-w-2xl">
+                Importez un fichier CSV, TSV, Excel ou JSON, ou démarrez avec un jeu de référence.
+                Le typage des colonnes, les valeurs manquantes et les doublons sont détectés automatiquement.
+            </p>
         </div>
-    </div>
 
-    <!-- Placeholder Card for Member 2 -->
-    <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-8 text-center space-y-4">
-        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-        </div>
-        <h3 class="text-lg font-semibold text-white">Zone d'Ingestion des Données</h3>
-        <p class="text-xs text-slate-400 max-w-md mx-auto">
-            Ce module (sous la responsabilité du Membre 2) accueillera le glisser-déposer de fichiers CSV/Excel/JSON, la détection automatique des séparateurs et l'accès aux benchmarks (Iris, Titanic, Housing, Wine).
-        </p>
-        <div class="pt-4">
-            <a href="{% url 'core:dashboard' %}" class="inline-flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300">
-                &larr; Retour au Dashboard
+        {% if dataset %}
+        <div class="flex items-center gap-2 shrink-0">
+            <form method="post" action="{% url 'datasets:delete' %}"
+                  onsubmit="return confirm('Supprimer définitivement « {{ dataset.name|escapejs }} » du studio ?');">
+                {% csrf_token %}
+                <input type="hidden" name="dataset_id" value="{{ dataset.id }}">
+                <button type="submit"
+                        class="flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-rose-400 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-lg transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Supprimer
+                </button>
+            </form>
+            <a href="{% url 'eda:index' %}"
+               class="flex items-center gap-1.5 text-[11px] font-medium text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg transition-colors">
+                Continuer vers l'EDA
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
             </a>
         </div>
+        {% endif %}
     </div>
+
+    {% if not dataset %}
+        <!-- Empty state: upload + samples + recent -->
+        {% include 'datasets/_ingestion_controls.html' %}
+
+        {% if recent_datasets %}
+        <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Datasets récents</h3>
+                <span class="text-[10px] text-slate-500">Conservés dans le studio</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {% for item in recent_datasets %}
+                <div class="flex items-center justify-between gap-2 border border-slate-800 rounded-xl p-3 bg-slate-900/40">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold text-slate-200 truncate">{{ item.name }}</p>
+                        <p class="text-[10px] text-slate-500 font-mono mt-0.5">
+                            {{ item.n_rows }} × {{ item.n_cols }} &bull; {{ item.created_at|date:"d/m H:i" }}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <form method="post" action="{% url 'datasets:activate' item.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="px-2 py-1 rounded-md text-[10px] font-medium text-indigo-400 hover:text-white hover:bg-indigo-600/80 border border-indigo-500/30 transition-colors">
+                                Ouvrir
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'datasets:delete' %}"
+                              onsubmit="return confirm('Supprimer « {{ item.name|escapejs }} » ?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="dataset_id" value="{{ item.id }}">
+                            <button type="submit" title="Supprimer"
+                                    class="w-6 h-6 rounded-md text-slate-500 hover:text-rose-400 hover:bg-slate-800 flex items-center justify-center transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Active dataset summary -->
+        <div class="bg-gradient-to-r from-indigo-500/[0.07] via-transparent to-transparent border border-indigo-500/20 rounded-2xl p-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] uppercase tracking-wider text-indigo-400/80 font-semibold">Jeu de données actif</p>
+                        <p class="text-sm font-semibold text-white truncate">{{ dataset.name }}</p>
+                    </div>
+                    <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        prêt
+                    </span>
+                </div>
+                <div class="flex items-center gap-3 text-[10px] font-mono text-slate-400">
+                    <span>{{ dataset.get_source_display }}</span>
+                    <span class="text-slate-700">|</span>
+                    <span>{{ dataset.size_bytes|filesizeformat }}</span>
+                    <span class="text-slate-700">|</span>
+                    <span>{{ dataset.created_at|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Lignes</p>
+                <p class="text-xl font-bold text-white font-mono mt-1">{{ profile.rows_display }}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">observations</p>
+            </div>
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Colonnes</p>
+                <p class="text-xl font-bold text-white font-mono mt-1">{{ profile.cols_display }}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">variables</p>
+            </div>
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Complétude</p>
+                <p class="text-xl font-bold font-mono mt-1 {% if profile.completeness >= 95 %}text-emerald-400{% elif profile.completeness >= 80 %}text-amber-400{% else %}text-rose-400{% endif %}">
+                    {{ profile.completeness }}<span class="text-sm text-slate-500">%</span>
+                </p>
+                <p class="text-[10px] text-slate-500 mt-0.5">{{ profile.missing_cells }} cellules vides</p>
+            </div>
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Doublons</p>
+                <p class="text-xl font-bold font-mono mt-1 {% if profile.duplicates %}text-amber-400{% else %}text-white{% endif %}">
+                    {{ profile.duplicates }}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">lignes identiques</p>
+            </div>
+            <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-4">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Mémoire</p>
+                <p class="text-xl font-bold text-white font-mono mt-1">{{ profile.memory_human }}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">en RAM (pandas)</p>
+            </div>
+        </div>
+
+        <!-- Profile + quality -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+            <!-- Column profile -->
+            <div class="xl:col-span-2 bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800/80">
+                    <div>
+                        <h3 class="text-sm font-semibold text-white tracking-tight">Profil des colonnes</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Typage automatique et taux de renseignement par variable</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                        <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">num {{ profile.numeric_count }}</span>
+                        <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">cat {{ profile.categorical_count }}</span>
+                        {% if profile.datetime_count %}
+                        <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">date {{ profile.datetime_count }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto overflow-y-auto max-h-[560px]">
+                    <table class="min-w-full text-xs">
+                        <thead class="sticky top-0 bg-[#11161f] z-10">
+                            <tr class="border-b border-slate-800">
+                                <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">Colonne</th>
+                                <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">Type</th>
+                                <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 w-40">Renseignement</th>
+                                <th class="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-500">Uniques</th>
+                                <th class="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">Aperçu</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60">
+                            {% for column in profile.columns %}
+                            <tr class="hover:bg-slate-800/30 transition-colors">
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-mono text-[11px] text-slate-200">{{ column.name }}</span>
+                                        {% if column.is_id_like %}
+                                        <span class="px-1 py-px rounded text-[9px] font-mono bg-slate-800 text-slate-400 border border-slate-700" title="Identifiant probable : exclu par défaut des variables explicatives">ID</span>
+                                        {% endif %}
+                                        {% if column.suggested_target %}
+                                        <span class="px-1 py-px rounded text-[9px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Cible suggérée">cible</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    {% include 'datasets/_kind_badge.html' with kind=column.kind %}
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-1.5 w-20 rounded-full bg-slate-800 overflow-hidden">
+                                            <div class="h-full rounded-full {% if column.missing_pct == 0 %}bg-emerald-500{% elif column.missing_pct < 20 %}bg-indigo-500{% elif column.missing_pct < 50 %}bg-amber-500{% else %}bg-rose-500{% endif %}"
+                                                 style="width: calc(100% - {{ column.missing_pct }}%);"></div>
+                                        </div>
+                                        <span class="text-[10px] font-mono {% if column.missing_pct == 0 %}text-slate-500{% else %}text-amber-400{% endif %}">
+                                            {% if column.missing_pct == 0 %}complet{% else %}-{{ column.missing_pct }}%{% endif %}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-mono text-[11px] text-slate-400">{{ column.unique }}</td>
+                                <td class="px-4 py-2.5 font-mono text-[10px] text-slate-500 truncate max-w-[220px]">
+                                    {{ column.sample_values|join:" · "|default:"—" }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Data quality panel -->
+            <div class="space-y-4">
+                <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-5">
+                    <h3 class="text-sm font-semibold text-white tracking-tight mb-4">Qualité des données</h3>
+
+                    <div class="flex items-end justify-between mb-1.5">
+                        <p class="text-2xl font-bold font-mono {% if profile.completeness >= 95 %}text-emerald-400{% elif profile.completeness >= 80 %}text-amber-400{% else %}text-rose-400{% endif %}">
+                            {{ profile.completeness }}<span class="text-sm text-slate-500">%</span>
+                        </p>
+                        <p class="text-[10px] text-slate-500">complétude globale</p>
+                    </div>
+                    <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
+                        <div class="h-full rounded-full {% if profile.completeness >= 95 %}bg-emerald-500{% elif profile.completeness >= 80 %}bg-amber-500{% else %}bg-rose-500{% endif %}"
+                             style="width: {{ profile.completeness }}%"></div>
+                    </div>
+
+                    <dl class="mt-4 space-y-2 text-[11px]">
+                        <div class="flex items-center justify-between">
+                            <dt class="text-slate-500">Cellules manquantes</dt>
+                            <dd class="font-mono text-slate-300">{{ profile.missing_cells }} ({{ profile.missing_pct }}%)</dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt class="text-slate-500">Doublons exacts</dt>
+                            <dd class="font-mono {% if profile.duplicates %}text-amber-400{% else %}text-slate-300{% endif %}">{{ profile.duplicates }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt class="text-slate-500">Numériques</dt>
+                            <dd class="font-mono text-slate-300">{{ profile.numeric_count }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <dt class="text-slate-500">Catégorielles / texte</dt>
+                            <dd class="font-mono text-slate-300">{{ profile.categorical_count }}</dd>
+                        </div>
+                    </dl>
+
+                    {% if profile.high_missing_columns or profile.id_like_columns or profile.constant_columns %}
+                    <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-2">
+                        {% for column in profile.high_missing_columns %}
+                        <div class="flex items-start gap-2 text-[11px]">
+                            <svg class="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                            </svg>
+                            <span class="text-slate-400"><span class="font-mono text-amber-300">{{ column.name }}</span> a {{ column.missing_pct }}% de valeurs manquantes.</span>
+                        </div>
+                        {% endfor %}
+                        {% if profile.id_like_columns %}
+                        <div class="flex items-start gap-2 text-[11px]">
+                            <svg class="w-3.5 h-3.5 text-indigo-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-slate-400">
+                                {{ profile.id_like_columns|length }} colonne(s) ressemblent à des identifiants :
+                                <span class="font-mono text-slate-300">{{ profile.id_like_columns|join:", " }}</span>.
+                                Elles seront exclues par défaut.
+                            </span>
+                        </div>
+                        {% endif %}
+                        {% if profile.constant_columns %}
+                        <div class="flex items-start gap-2 text-[11px]">
+                            <svg class="w-3.5 h-3.5 text-slate-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                            <span class="text-slate-400">Colonne(s) constante(s) : <span class="font-mono text-slate-300">{{ profile.constant_columns|join:", " }}</span>.</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if profile.suggested_target %}
+                    <div class="mt-4 p-3 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20">
+                        <p class="text-[10px] uppercase tracking-wider text-emerald-400/80 font-semibold">Cible suggérée</p>
+                        <p class="text-xs font-mono text-emerald-300 mt-1">{{ profile.suggested_target }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-5 space-y-2">
+                    <a href="{% url 'preprocessing:index' %}"
+                       class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors">
+                        Configurer le prétraitement
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </a>
+                    <a href="{% url 'eda:index' %}"
+                       class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 text-slate-300 text-xs font-medium transition-colors">
+                        Explorer les graphiques EDA
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800/80">
+                <div>
+                    <h3 class="text-sm font-semibold text-white tracking-tight">Aperçu des données</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Navigation paginée sans rechargement de page (HTMX)</p>
+                </div>
+                <span class="text-[10px] font-mono text-slate-500">{{ dataset.original_filename }}</span>
+            </div>
+            <div id="preview-panel">
+                {% include 'datasets/_preview.html' %}
+            </div>
+        </div>
+
+        <!-- Change dataset -->
+        <div class="bg-[#161b22] border border-slate-800 rounded-2xl">
+            <button type="button" @click="changeOpen = !changeOpen"
+                    class="w-full flex items-center justify-between px-5 py-4 text-left">
+                <div>
+                    <h3 class="text-sm font-semibold text-white tracking-tight">Changer de jeu de données</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Importer un nouveau fichier ou recharger un jeu de démonstration</p>
+                </div>
+                <svg class="w-4 h-4 text-slate-400 transition-transform" :class="changeOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div x-show="changeOpen" x-cloak class="px-5 pb-5 pt-1 border-t border-slate-800/80">
+                <div class="pt-5">
+                    {% include 'datasets/_ingestion_controls.html' %}
+                </div>
+                {% if recent_datasets %}
+                <div class="mt-5 pt-4 border-t border-slate-800/80">
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-2">Datasets récents</p>
+                    <div class="flex flex-wrap gap-2">
+                        {% for item in recent_datasets %}
+                        <form method="post" action="{% url 'datasets:activate' item.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-900/60 hover:border-indigo-500/50 text-[11px] text-slate-300 transition-colors">
+                                {{ item.name }}
+                                <span class="font-mono text-slate-500">{{ item.n_rows }}×{{ item.n_cols }}</span>
+                            </button>
+                        </form>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
-

@@ -1,0 +1,79 @@
+{# HTMX partial: paginated preview of the active dataset #}
+{% if error %}
+<div class="p-8 text-center">
+    <p class="text-sm text-rose-400">{{ error }}</p>
+</div>
+{% elif preview %}
+<div class="overflow-x-auto">
+    <table class="min-w-full text-xs">
+        <thead>
+            <tr class="border-b border-slate-800">
+                <th class="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap">#</th>
+                {% for col in preview.columns %}
+                <th class="px-3 py-2.5 text-left whitespace-nowrap">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full
+                            {% if col.kind == 'numeric' %}bg-blue-400
+                            {% elif col.kind == 'categorical' %}bg-purple-400
+                            {% elif col.kind == 'boolean' %}bg-cyan-400
+                            {% elif col.kind == 'datetime' %}bg-amber-400
+                            {% elif col.kind == 'empty' %}bg-rose-400
+                            {% else %}bg-slate-500{% endif %}"></span>
+                        <span class="text-[11px] font-semibold text-slate-300">{{ col.name }}</span>
+                    </div>
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60">
+            {% for row in preview.rows %}
+            <tr class="hover:bg-slate-800/30 transition-colors">
+                <td class="px-3 py-2 text-slate-600 font-mono text-[10px]">{{ forloop.counter0|add:preview.start }}</td>
+                {% for cell in row %}
+                <td class="px-3 py-2 text-slate-300 font-mono whitespace-nowrap max-w-[240px] overflow-hidden text-ellipsis">
+                    {% if cell %}{{ cell }}{% else %}<span class="text-slate-600">—</span>{% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination footer -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-800/80">
+    <p class="text-[11px] text-slate-500">
+        Lignes <span class="text-slate-300 font-mono">{{ preview.start }}–{{ preview.end }}</span>
+        sur <span class="text-slate-300 font-mono">{{ preview.rows_display }}</span>
+        &bull; page <span class="text-slate-300 font-mono">{{ preview.page }}</span>/<span class="font-mono">{{ preview.total_pages }}</span>
+    </p>
+    <div class="flex items-center space-x-2">
+        <select name="page_size"
+                hx-get="{% url 'datasets:preview' %}"
+                hx-target="#preview-panel"
+                hx-swap="innerHTML"
+                hx-include="this"
+                class="bg-slate-900 border border-slate-700 text-slate-300 text-[11px] rounded-lg px-2 py-1 focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+            {% for size in preview.page_sizes %}
+            <option value="{{ size }}" {% if size == preview.page_size %}selected{% endif %}>{{ size }} / page</option>
+            {% endfor %}
+        </select>
+        <button type="button"
+                hx-get="{% url 'datasets:preview' %}?page={{ preview.prev_page }}&page_size={{ preview.page_size }}"
+                hx-target="#preview-panel"
+                hx-swap="innerHTML"
+                {% if not preview.has_prev %}disabled{% endif %}
+                class="px-2.5 py-1 rounded-lg border border-slate-700 text-slate-300 text-[11px] hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            &larr; Précédent
+        </button>
+        <button type="button"
+                hx-get="{% url 'datasets:preview' %}?page={{ preview.next_page }}&page_size={{ preview.page_size }}"
+                hx-target="#preview-panel"
+                hx-swap="innerHTML"
+                {% if not preview.has_next %}disabled{% endif %}
+                class="px-2.5 py-1 rounded-lg border border-slate-700 text-slate-300 text-[11px] hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+            Suivant &rarr;
+        </button>
+    </div>
+</div>
+{% endif %}
