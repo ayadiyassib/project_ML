@@ -9,12 +9,12 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
-            <div class="inline-flex items-center gap-2 text-[11px] font-mono mb-1.5">
-                <span class="px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">ÉTAPE 03</span>
+            <div class="inline-flex items-center gap-2 text-[10px] font-mono mb-2">
+                <span class="px-2 py-0.5 rounded-[2px] border border-indigo-500/40 text-indigo-300 tracking-label uppercase">Étape 03</span>
                 <span class="text-slate-600">·</span>
-                <span class="text-slate-500 uppercase tracking-wider">Module Prétraitement</span>
+                <span class="text-slate-500 uppercase tracking-label">Module Prétraitement</span>
             </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">Prétraitement & Feature Engineering</h1>
+            <h1 class="font-display text-[1.9rem] leading-tight font-semibold text-paper tracking-[0.01em]">Prétraitement &amp; Feature Engineering</h1>
             <p class="text-slate-400 text-xs mt-1 max-w-2xl">
                 Imputation, encodage, normalisation et découpage train/test.
                 Toutes les statistiques sont calculées sur le train uniquement : aucune fuite de données.
@@ -27,7 +27,7 @@
                 Changer de dataset
             </a>
             <a href="{% url 'ml_engine:index' %}"
-               class="flex items-center gap-1.5 text-[11px] font-medium text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg transition-colors">
+               class="flex items-center gap-1.5 text-[11px] font-medium text-indigo-300 hover:text-white bg-transparent hover:bg-indigo-500/10 border border-indigo-500/40 px-3 py-2 rounded-lg transition-colors">
                 Modélisation
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -39,7 +39,7 @@
 
     {% if not dataset %}
     <!-- No active dataset -->
-    <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-10 text-center max-w-2xl mx-auto">
+    <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-10 text-center max-w-2xl mx-auto">
         <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-4">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
@@ -67,11 +67,11 @@
             {% csrf_token %}
 
             <!-- 1. Target & features -->
-            <div class="bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="bg-[#1b1918] border border-slate-800 rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <span class="w-5 h-5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-bold flex items-center justify-center">1</span>
-                        <h3 class="text-sm font-semibold text-white tracking-tight">Cible & variables explicatives</h3>
+                        <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Cible & variables explicatives</h3>
                     </div>
                     <span class="text-[10px] font-mono text-slate-500">{{ dataset.n_rows }} × {{ dataset.n_cols }}</span>
                 </div>
@@ -151,11 +151,11 @@
             </div>
 
             <!-- 2. Missing values -->
-            <div class="bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="bg-[#1b1918] border border-slate-800 rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <span class="w-5 h-5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-bold flex items-center justify-center">2</span>
-                        <h3 class="text-sm font-semibold text-white tracking-tight">Valeurs manquantes & doublons</h3>
+                        <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Valeurs manquantes & doublons</h3>
                     </div>
                     <span class="text-[10px] font-mono {% if profile.missing_cells %}text-amber-400{% else %}text-emerald-400{% endif %}">
                         {{ profile.missing_cells }} cellules vides
@@ -212,11 +212,11 @@
             </div>
 
             <!-- 3. Encoding, scaling, split -->
-            <div class="bg-[#161b22] border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="bg-[#1b1918] border border-slate-800 rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <span class="w-5 h-5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-[10px] font-bold flex items-center justify-center">3</span>
-                        <h3 class="text-sm font-semibold text-white tracking-tight">Outliers, encodage & découpage</h3>
+                        <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Outliers, encodage & découpage</h3>
                     </div>
                     <span class="text-[10px] font-mono text-slate-500">{{ profile.numeric_count }} num &bull; {{ profile.categorical_count }} cat</span>
                 </div>
@@ -281,7 +281,7 @@
             </div>
 
             <!-- Submit -->
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#161b22] border border-slate-800 rounded-2xl px-5 py-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#1b1918] border border-slate-800 rounded-2xl px-5 py-4">
                 <p class="text-[10px] text-slate-500 flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -299,10 +299,10 @@
         <div class="space-y-5">
 
             <!-- Dataset recap -->
-            <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-5">
-                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-3">Jeu de données actif</p>
+            <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-5">
+                <p class="text-[9px] uppercase tracking-label text-slate-500 font-semibold mb-3">Jeu de données actif</p>
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                    <div class="w-9 h-9 rounded-xl bg-slate-800/60 border border-slate-700/70 text-slate-300 flex items-center justify-center shrink-0">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16" />
                         </svg>
@@ -330,9 +330,9 @@
 
             <!-- Last run -->
             {% if prepared %}
-            <div class="bg-[#161b22] border border-emerald-500/20 rounded-2xl p-5">
+            <div class="bg-[#1b1918] border border-emerald-500/20 rounded-2xl p-5">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-semibold text-white tracking-tight">Dernier pipeline</h3>
+                    <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Dernier pipeline</h3>
                     {% include 'components/badge.html' with badge_type=prepared.task_type %}
                 </div>
 
@@ -357,7 +357,7 @@
 
                 {% if prepared.class_distribution %}
                 <div class="mt-4 pt-4 border-t border-slate-800/80">
-                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-2">Répartition des classes</p>
+                    <p class="text-[9px] uppercase tracking-label text-slate-500 font-semibold mb-2">Répartition des classes</p>
                     <div class="space-y-1.5">
                         {% for item in prepared.class_distribution %}
                         <div class="flex items-center gap-2">
@@ -408,7 +408,7 @@
                 </div>
             </div>
             {% else %}
-            <div class="bg-[#161b22] border border-slate-800 border-dashed rounded-2xl p-6 text-center">
+            <div class="bg-[#1b1918] border border-slate-800 border-dashed rounded-2xl p-6 text-center">
                 <p class="text-xs font-medium text-slate-300">Aucun pipeline ajusté</p>
                 <p class="text-[11px] text-slate-500 mt-1">
                     Configurez les options puis lancez le prétraitement : les matrices

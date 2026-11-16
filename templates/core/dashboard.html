@@ -6,15 +6,15 @@
 <div class="max-w-7xl mx-auto space-y-8">
     
     <!-- Hero Banner (Linear style) -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-[#131926] to-[#0d121d] border border-slate-800 p-8 shadow-2xl">
+    <div class="relative overflow-hidden rounded-2xl bg-[#1b1918] border border-slate-800 p-8">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-3 max-w-2xl">
-                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium">
-                    <span class="flex h-2 w-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700/70 text-slate-300 text-xs font-medium">
+                    <span class="flex h-2 w-2 rounded-full bg-slate-400"></span>
                     <span>Master Machine Learning &bull; Plateforme End-to-End</span>
                 </div>
-                <h1 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-                    ML Studio <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Polyvalent</span>
+                <h1 class="font-display text-3xl lg:text-4xl font-semibold text-paper tracking-tight">
+                    ML Studio <span class="text-indigo-400">Polyvalent</span>
                 </h1>
                 <p class="text-slate-400 text-sm leading-relaxed">
                     Studio SaaS complet pour l'ingestion, le profiling interactif, le prétraitement sans fuite de données, l'entraînement de 11 algorithmes de Machine Learning, l'analyse diagnostique et l'inférence en direct.
@@ -24,7 +24,7 @@
             <!-- Quick Action CTA -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
                 <a href="{% url 'datasets:index' %}" 
-                   class="inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                   class="inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-3 rounded-xl transition-all">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -39,15 +39,12 @@
                 </a>
             </div>
         </div>
-
-        <!-- Background Ambient Glow -->
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
     </div>
 
     <!-- Active Session Overview Card -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Status Card 1: Dataset -->
-        <div class="bg-[#161b22] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
             <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16" />
@@ -61,7 +58,7 @@
         </div>
 
         <!-- Status Card 2: Tâche ML -->
-        <div class="bg-[#161b22] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
             <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -75,7 +72,7 @@
         </div>
 
         <!-- Status Card 3: Modèle Entraîné -->
-        <div class="bg-[#161b22] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
             <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -89,7 +86,7 @@
         </div>
 
         <!-- Status Card 4: Architecture Pure Python -->
-        <div class="bg-[#161b22] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-5 flex items-center space-x-4">
             <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -114,7 +111,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {% for step in pipeline_steps %}
-            <div class="group relative bg-[#161b22] border border-slate-800 hover:border-indigo-500/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/5 flex flex-col justify-between">
+            <div class="group relative bg-[#1b1918] border border-slate-800 hover:border-indigo-500/50 rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between">
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center text-sm font-bold text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -155,7 +152,7 @@
     </div>
 
     <!-- 11 Algorithms Quick Catalog Card -->
-    <div class="bg-[#161b22] border border-slate-800 rounded-2xl p-6 lg:p-8 space-y-4">
+    <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-6 lg:p-8 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h3 class="text-lg font-bold text-white tracking-tight">Catalogue des 11 Algorithmes Requis</h3>

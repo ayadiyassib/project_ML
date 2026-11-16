@@ -5,41 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ML Studio | Atelier Machine Learning Polyvalent{% endblock %}</title>
 
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Shippori Mincho (display) + Noto Sans JP (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS (CDN standalone) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // ------------------------------------------------------------------
+        // "Omakase" design tokens — lacquer black, rice-paper text, one ume red.
+        // Every template keeps its slate-*/indigo-* utilities; only the scales
+        // are remapped here so the whole studio inherits the palette.
+        // ------------------------------------------------------------------
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['"Noto Sans JP"', 'Inter', 'sans-serif'],
+                        display: ['"Shippori Mincho"', 'Georgia', 'serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
-                        brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#312e81',
+                        // Neutrals: 950 lacquer → 100 rice paper
+                        slate: {
+                            50: '#faf7f0',
+                            100: '#F3EDE2',
+                            200: '#e2dbcd',
+                            300: '#c9c1b4',
+                            400: '#9B9388',
+                            500: '#756e66',
+                            600: '#4f4a46',
+                            700: '#2f2c2a',
+                            800: '#262322',
+                            900: '#141312',
+                            950: '#0b0a0a',
                         },
+                        // The single interaction accent
+                        indigo: {
+                            50: '#f9ecec',
+                            100: '#f1d6d7',
+                            200: '#e4b0b2',
+                            300: '#d68a8e',
+                            400: '#cf6d73',
+                            500: '#c1454e',
+                            600: '#B8323C',
+                            700: '#98262f',
+                            800: '#6f1c22',
+                            900: '#4a1418',
+                            950: '#2b0d10',
+                        },
+                        // Data-semantic tints, desaturated to sit on lacquer
+                        purple: {
+                            200: '#e6d7bb',
+                            300: '#d3bc93',
+                            400: '#c2a878',
+                            500: '#ab8f5f',
+                            600: '#8d7449',
+                            950: '#241d13',
+                        },
+                        blue: {
+                            200: '#cfd8dc',
+                            300: '#b3c0c6',
+                            400: '#93a7b0',
+                            500: '#748c96',
+                            950: '#161d20',
+                        },
+                        cyan: {
+                            400: '#9fb3b3',
+                            500: '#7f9595',
+                        },
+                        emerald: {
+                            200: '#cfdacc',
+                            300: '#b0c2ab',
+                            400: '#8fae95',
+                            500: '#6f9077',
+                            600: '#557459',
+                            800: '#2f4433',
+                            950: '#141f16',
+                        },
+                        amber: {
+                            200: '#e8d9b8',
+                            300: '#d9c294',
+                            400: '#c2a05c',
+                            500: '#a8874a',
+                            800: '#574428',
+                            950: '#241c11',
+                        },
+                        rose: {
+                            200: '#e5c9c6',
+                            300: '#d3a8a4',
+                            400: '#c07a76',
+                            500: '#a85f5b',
+                            600: '#8d4b47',
+                            800: '#4c2a28',
+                            950: '#221312',
+                        },
+                        brand: {
+                            50: '#f9ecec',
+                            100: '#f1d6d7',
+                            400: '#cf6d73',
+                            500: '#c1454e',
+                            600: '#B8323C',
+                            700: '#98262f',
+                            900: '#4a1418',
+                        },
+                        // Semantic aliases (opt-in for new markup)
+                        ink: '#111010',
+                        paper: '#F3EDE2',
+                        ume: '#B8323C',
+                        sumi: { DEFAULT: '#1B1918', line: '#2f2c2a' },
                         surface: {
-                            base: '#0b0f19',
-                            card: '#161b22',
-                            border: '#334155',
-                            muted: '#0f172a',
-                        }
-                    }
-                }
-            }
+                            base: '#111010',
+                            card: '#1B1918',
+                            border: '#2f2c2a',
+                            muted: '#141312',
+                        },
+                    },
+                    borderRadius: {
+                        sm: '1px',
+                        DEFAULT: '2px',
+                        md: '2px',
+                        lg: '3px',
+                        xl: '4px',
+                        '2xl': '5px',
+                        '3xl': '6px',
+                    },
+                    boxShadow: {
+                        sm: '0 1px 0 0 rgba(0, 0, 0, 0.35)',
+                        DEFAULT: '0 1px 0 0 rgba(0, 0, 0, 0.4)',
+                        inner: 'inset 0 1px 0 0 rgba(0, 0, 0, 0.35)',
+                        lg: '0 10px 30px -18px rgba(0, 0, 0, 0.9)',
+                        xl: '0 16px 40px -22px rgba(0, 0, 0, 0.95)',
+                    },
+                    letterSpacing: {
+                        label: '0.24em',
+                    },
+                },
+            },
         }
     </script>
 
@@ -84,13 +188,21 @@
         [x-cloak] { display: none !important; }
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0b0f19; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        ::-webkit-scrollbar-track { background: #111010; }
+        ::-webkit-scrollbar-thumb { background: #2f2c2a; border-radius: 0; }
+        ::-webkit-scrollbar-thumb:hover { background: #4f4a46; }
+        /* Rice-paper selection, ink text on ume */
+        ::selection { background: #B8323C; color: #ffffff; }
+        /* Theme-native form controls */
+        input[type="checkbox"], input[type="radio"] { accent-color: #B8323C; }
+        /* Display face for page titles, everywhere, without touching markup */
+        h1 { font-family: 'Shippori Mincho', Georgia, serif; letter-spacing: 0.01em; }
+        /* Flat paper grain: no gradients anywhere in this system */
+        body { background-color: #111010; }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex font-sans antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-[#111010] text-slate-100 min-h-screen flex font-sans antialiased">
 
     <!-- Sidebar Navigation -->
     {% include 'components/sidebar.html' %}
