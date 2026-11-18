@@ -1,0 +1,85 @@
+<div class="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+            <h3 class="text-sm font-semibold text-white">Tableau Comparatif &amp; Leaderboard</h3>
+        </div>
+        {% if leaderboard %}
+        <form action="{% url 'ml_engine:reset' %}" method="POST" onsubmit="return confirm('Voulez-vous réinitialiser l\'historique des modèles ?');">
+            {% csrf_token %}
+            <button type="submit" class="text-[11px] text-slate-400 hover:text-rose-400 font-mono transition-colors">
+                Réinitialiser le Leaderboard
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if leaderboard %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+            <thead>
+                <tr class="border-b border-slate-800 text-[10px] font-mono text-slate-400 uppercase">
+                    <th class="py-2.5 px-3">Rang</th>
+                    <th class="py-2.5 px-3">Algorithme</th>
+                    <th class="py-2.5 px-3">Score Test</th>
+                    <th class="py-2.5 px-3">Validation Croisée</th>
+                    <th class="py-2.5 px-3">Durée</th>
+                    <th class="py-2.5 px-3">Statut</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono">
+                {% for row in leaderboard %}
+                <tr class="hover:bg-slate-800/40 {% if row.is_best %}bg-indigo-500/5{% endif %}">
+                    <td class="py-3 px-3">
+                        {% if row.is_best %}
+                        <span class="inline-flex items-center gap-1 text-amber-400 font-bold">
+                            #{{ forloop.counter }} 👑
+                        </span>
+                        {% else %}
+                        <span class="text-slate-400">#{{ forloop.counter }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-3 font-semibold text-slate-200">
+                        {{ row.algo_name }}
+                    </td>
+                    <td class="py-3 px-3">
+                        <span class="text-sm font-bold {% if row.is_best %}text-emerald-400{% else %}text-slate-300{% endif %}">
+                            {{ row.summary_score }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3 text-slate-400">
+                        {% if row.cv_mean is not None %}
+                        {{ row.cv_mean }} <span class="text-slate-600">&plusmn;</span> {{ row.cv_std }}
+                        {% else %}
+                        <span class="text-slate-600">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-3 text-slate-400">
+                        {{ row.training_time_ms }} ms
+                    </td>
+                    <td class="py-3 px-3">
+                        {% if row.is_best %}
+                        <span class="px-2 py-0.5 rounded text-[10px] border border-amber-500/40 text-amber-300 bg-amber-500/10">
+                            Champion Actuel
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded text-[10px] border border-slate-700 text-slate-400">
+                            Candidat
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-6 bg-slate-950/40 border border-slate-800/80 rounded-xl text-center">
+        <p class="text-xs text-slate-400">
+            Aucun modèle n'a encore été comparé. Entraînez plusieurs algorithmes pour observer le classement automatique.
+        </p>
+    </div>
+    {% endif %}
+</div>
