@@ -11,4 +11,5 @@ urlpatterns = [
     path("", views.index_view, name="index"),
     path("download/model/", views.download_model_view, name="download_model"),
     path("download/predictions/", views.download_predictions_view, name="download_predictions"),
+    path("predict/", views.predict_view, name="predict"),
 ]

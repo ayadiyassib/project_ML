@@ -131,3 +131,38 @@ class ExporterTests(TestCase):
         res_csv = self.client.get(reverse("export_inference:download_predictions"))
         self.assertEqual(res_csv.status_code, 200)
         self.assertIn("attachment", res_csv.get("Content-Disposition", ""))
+
+    def test_inference_schema_and_prediction(self):
+        """Test dynamic input schema generation and live prediction computation."""
+        from apps.export_inference.predictor import get_feature_input_schema, predict_from_inputs
+
+        schema = get_feature_input_schema(self.dataset)
+        names = [f["name"] for f in schema]
+        self.assertIn("age", names)
+        self.assertIn("income", names)
+        self.assertIn("category", names)
+
+        # Single prediction
+        res = predict_from_inputs(self.dataset, {
+            "age": 35,
+            "income": 70000,
+            "category": "A",
+        })
+        self.assertIn("prediction", res)
+        self.assertEqual(res["task_type"], "classification")
+        self.assertIsNotNone(res["confidence"])
+
+    def test_predict_view_endpoint(self):
+        """Test HTMX predict endpoint."""
+        session = self.client.session
+        session[SESSION_KEY] = {"dataset_id": str(self.dataset.id)}
+        session.save()
+
+        res = self.client.post(reverse("export_inference:predict"), {
+            "age": 28,
+            "income": 50000,
+            "category": "B",
+        })
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "Résultat de la Prédiction")
+        self.assertContains(res, "Indice de Confiance")

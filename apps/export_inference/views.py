@@ -20,6 +20,7 @@ from apps.export_inference.exporter import (
     generate_predictions_csv,
     generate_python_snippet,
 )
+from apps.export_inference.predictor import get_feature_input_schema, predict_from_inputs
 
 
 def _build_context(request: HttpRequest, dataset) -> Dict[str, Any]:
@@ -28,6 +29,7 @@ def _build_context(request: HttpRequest, dataset) -> Dict[str, Any]:
     latest_result = load_latest_result(dataset) if dataset else None
     leaderboard = load_leaderboard(dataset) if dataset else []
     model = load_latest_model(dataset) if dataset else None
+    inference_schema = get_feature_input_schema(dataset) if dataset else []
 
     # Sample row for Python code snippet
     sample_row = {}
@@ -50,6 +52,7 @@ def _build_context(request: HttpRequest, dataset) -> Dict[str, Any]:
         "has_model": model is not None,
         "python_snippet": python_snippet,
         "sample_row": sample_row,
+        "inference_schema": inference_schema,
     }
 
 
@@ -92,3 +95,21 @@ def download_predictions_view(request: HttpRequest) -> HttpResponse:
     except (ExportError, Exception) as exc:
         messages.error(request, f"Échec de l'export des prédictions : {exc}")
         return redirect("export_inference:index")
+
+
+@require_POST
+def predict_view(request: HttpRequest) -> HttpResponse:
+    """Execute live single-sample prediction and return HTMX partial card."""
+    dataset = get_active_dataset(request)
+    if dataset is None:
+        return HttpResponse('<div class="p-4 text-xs text-rose-400 bg-rose-950/40 rounded-xl border border-rose-900">Aucun jeu de données actif.</div>')
+
+    try:
+        result = predict_from_inputs(dataset, request.POST)
+        return render(
+            request,
+            "export_inference/_prediction_result.html",
+            {"prediction_result": result},
+        )
+    except Exception as exc:
+        return HttpResponse(f'<div class="p-4 text-xs text-rose-400 bg-rose-950/40 rounded-xl border border-rose-900">Erreur lors de la prédiction : {exc}</div>')
