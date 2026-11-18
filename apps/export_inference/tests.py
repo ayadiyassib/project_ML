@@ -166,3 +166,36 @@ class ExporterTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Résultat de la Prédiction")
         self.assertContains(res, "Indice de Confiance")
+
+    def test_pdf_report_generation(self):
+        """Verify that xhtml2pdf compiles a valid PDF starting with %PDF."""
+        from apps.export_inference.pdf_generator import generate_pdf_report_bytes
+
+        pdf_bytes = generate_pdf_report_bytes(self.dataset)
+        self.assertIsInstance(pdf_bytes, bytes)
+        self.assertTrue(pdf_bytes.startswith(b"%PDF"))
+        self.assertGreater(len(pdf_bytes), 1000)
+
+    def test_download_pdf_view(self):
+        """Test PDF download endpoint returns 200 and application/pdf."""
+        session = self.client.session
+        session[SESSION_KEY] = {"dataset_id": str(self.dataset.id)}
+        session.save()
+
+        res = self.client.get(reverse("export_inference:download_pdf"))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res["Content-Type"], "application/pdf")
+        self.assertIn("attachment", res.get("Content-Disposition", ""))
+
+    def test_export_inference_index_view_rendering(self):
+        """Test full index view rendering with all export cards and playground."""
+        session = self.client.session
+        session[SESSION_KEY] = {"dataset_id": str(self.dataset.id)}
+        session.save()
+
+        res = self.client.get(reverse("export_inference:index"))
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "Pipeline Scikit-Learn Autonome")
+        self.assertContains(res, "Prédictions du Jeu de Test")
+        self.assertContains(res, "Bac à Sable")
+        self.assertContains(res, "Consommation du Pipeline en Python")

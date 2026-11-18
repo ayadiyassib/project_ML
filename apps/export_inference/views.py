@@ -21,6 +21,7 @@ from apps.export_inference.exporter import (
     generate_python_snippet,
 )
 from apps.export_inference.predictor import get_feature_input_schema, predict_from_inputs
+from apps.export_inference.pdf_generator import generate_pdf_report_response
 
 
 def _build_context(request: HttpRequest, dataset) -> Dict[str, Any]:
@@ -113,3 +114,18 @@ def predict_view(request: HttpRequest) -> HttpResponse:
         )
     except Exception as exc:
         return HttpResponse(f'<div class="p-4 text-xs text-rose-400 bg-rose-950/40 rounded-xl border border-rose-900">Erreur lors de la prédiction : {exc}</div>')
+
+
+@require_GET
+def download_pdf_view(request: HttpRequest) -> HttpResponse:
+    """Compile and download the executive audit PDF report."""
+    dataset = get_active_dataset(request)
+    if dataset is None:
+        messages.error(request, "Aucun jeu de données actif.")
+        return redirect("datasets:index")
+
+    try:
+        return generate_pdf_report_response(dataset)
+    except Exception as exc:
+        messages.error(request, f"Échec de génération du rapport PDF : {exc}")
+        return redirect("export_inference:index")
