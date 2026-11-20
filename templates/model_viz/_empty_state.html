@@ -1,0 +1,15 @@
+{# Empty state card: ``heading``, ``text``, ``cta`` label and ``url``. #}
+<div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-10 text-center max-w-2xl mx-auto">
+    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+        </svg>
+    </div>
+    <h3 class="text-base font-semibold text-white">{{ heading }}</h3>
+    <p class="text-xs text-slate-400 mt-2 max-w-md mx-auto">{{ text }}</p>
+    <a href="{{ url }}"
+       class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors">
+        {{ cta }}
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+    </a>
+</div>
