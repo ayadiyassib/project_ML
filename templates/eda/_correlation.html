@@ -1,0 +1,37 @@
+{# HTMX partial: correlation heatmap + strongest pairs. #}
+{% if not chart %}
+{% include 'eda/_error.html' with error="Il faut au moins deux variables numériques non constantes pour calculer une matrice de corrélation." %}
+{% else %}
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+    <div class="xl:col-span-2 min-w-0">
+        {% include 'components/plotly_chart.html' with chart=chart %}
+    </div>
+
+    <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-5 space-y-3">
+        <div>
+            <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Paires les plus liées</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">Triées par |r| — au-delà de 0,8 la colinéarité devient problématique pour les modèles linéaires.</p>
+        </div>
+        <ol class="space-y-1.5">
+            {% for pair in pairs %}
+            <li class="flex items-center gap-3 p-2.5 rounded-lg border border-slate-800 bg-slate-900/30">
+                <span class="w-10 shrink-0 font-mono text-xs text-right {% if pair.sign == 'positive' %}text-rose-300{% else %}text-blue-300{% endif %}">{{ pair.value|floatformat:2 }}</span>
+                <span class="min-w-0 flex-1">
+                    <span class="block font-mono text-[11px] text-slate-200 truncate" title="{{ pair.a }} ↔ {{ pair.b }}">{{ pair.a }} ↔ {{ pair.b }}</span>
+                    <span class="block text-[10px] text-slate-500">{{ pair.strength }} · {% if pair.sign == 'positive' %}varient ensemble{% else %}varient en sens opposé{% endif %}</span>
+                </span>
+                <span class="w-14 h-1.5 bg-slate-800 rounded-full overflow-hidden shrink-0" aria-hidden="true">
+                    <span class="block h-full {% if pair.sign == 'positive' %}bg-[#e66767]{% else %}bg-[#3987e5]{% endif %}" style="width: {% widthratio pair.abs 1 100 %}%"></span>
+                </span>
+            </li>
+            {% empty %}
+            <li class="text-xs text-slate-500">Aucune paire calculable.</li>
+            {% endfor %}
+        </ol>
+        <div class="pt-2 border-t border-slate-800/80 text-[10px] text-slate-500 leading-relaxed">
+            <strong class="text-slate-400">Pearson</strong> mesure une relation linéaire ;
+            <strong class="text-slate-400">Spearman</strong> travaille sur les rangs et capte toute relation monotone, en résistant aux outliers.
+        </div>
+    </div>
+</div>
+{% endif %}
