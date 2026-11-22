@@ -41,6 +41,11 @@ def model_artifacts(dataset: Dataset) -> Dict[str, Path]:
     }
 
 
+def algo_model_path(dataset: Dataset, algo_key: str) -> Path:
+    """One fitted estimator per leaderboard entry (used by the diagnostics comparison)."""
+    return models_dir(dataset) / f"model_{algo_key}.joblib"
+
+
 def get_available_algorithms(task_type: str) -> List[AlgorithmMeta]:
     """Return algorithms compatible with current dataset task."""
     return ModelRegistry.for_task(task_type)
@@ -168,6 +173,7 @@ def train_model_for_dataset(
     # Persist artifacts
     paths = model_artifacts(dataset)
     joblib.dump(model, paths["latest_model"])
+    joblib.dump(model, algo_model_path(dataset, algo_key))  # kept for model comparison
     paths["latest_result"].write_text(
         json.dumps(result.to_dict(), ensure_ascii=False, indent=2),
         encoding="utf-8"
