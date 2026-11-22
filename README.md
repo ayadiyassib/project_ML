@@ -237,6 +237,8 @@ L'EDA travaille sur le jeu brut (`load_dataframe`) : rien n'est réinjecté dans
 | **Classification** | Matrice de confusion (effectifs + % par classe réelle), courbes ROC et Précision-Rappel (binaire ou un-contre-tous + micro-moyenne), précision / rappel / F1 par classe, frontière de décision sur projection PCA 2D. |
 | **Clustering** | Méthode du coude (WCSS) + silhouette moyenne pour k = 2…10 (disponible avant même l'entraînement), silhouette par observation, clusters et centroïdes sur PCA 2D. |
 | **Interprétabilité** | Importance de Gini (arbres, forêts), coefficients (modèles linéaires), importance par permutation (SVM, KNN, Naïf Bayes, MLP), courbe de perte du MLP. |
+| **Comparaison des modèles** | Tous les algorithmes du classement sur les mêmes graphiques : courbes ROC et Précision-Rappel superposées (classification), distribution des erreurs absolues (régression). Chaque algorithme garde toujours la même couleur. |
+| **Rapport PDF** | Les graphiques clés (matrice de confusion, ROC, prédits vs réels, résidus, clusters, coude, importance, comparaison) sont redessinés avec matplotlib et intégrés à la section « Visualisations Diagnostiques » du rapport PDF du module Export. |
 
 ### Contrat avec le moteur ML
 
@@ -250,6 +252,8 @@ media/projects/<dataset_id>/models/latest_result.json    # TrainingResult.to_dic
 * Les prédictions sont recalculées sur `prepared.X_test` avec le modèle sauvegardé : les graphiques décrivent exactement le modèle entraîné.
 * Un modèle plus ancien que `prepared.joblib` (prétraitement relancé), ou dont le nombre de variables ne correspond plus, est signalé et ignoré.
 * Les seuls ajustements faits ici servent la visualisation : K-Means pour k = 2…10 (coude) et un clone du modèle sur 2 composantes PCA (frontière de décision, signalé comme approximation).
+* Pour la comparaison, le moteur ML garde aussi une copie de chaque modèle entraîné : `models/model_<algo_key>.joblib` (`apps.ml_engine.services.algo_model_path`). Seules les copies plus récentes que le prétraitement sont comparées.
+* Le rapport PDF appelle `apps.model_viz.report_charts.report_images(dataset)`, qui ne lève jamais d'exception : un graphique en échec n'empêche pas le téléchargement du rapport.
 
 Réutiliser un graphique ailleurs (rapport, autre page) :
 
