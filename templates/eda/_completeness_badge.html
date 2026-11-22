@@ -1,0 +1,18 @@
+{# Completeness badge: ``pct`` + ``level`` (good / ok / warning / critical). Icon + label, never colour alone. #}
+{% if level == 'good' %}
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/25" title="Colonne complète">
+    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>{{ pct|floatformat:"-1" }}%
+</span>
+{% elif level == 'ok' %}
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/5 text-emerald-400 border border-emerald-500/20" title="Quelques valeurs manquantes">
+    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"/></svg>{{ pct|floatformat:1 }}%
+</span>
+{% elif level == 'warning' %}
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/25" title="Imputation recommandée">
+    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v5m0 3h.01"/></svg>{{ pct|floatformat:1 }}%
+</span>
+{% else %}
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-rose-500/10 text-rose-300 border border-rose-500/25" title="Colonne très incomplète">
+    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>{{ pct|floatformat:1 }}%
+</span>
+{% endif %}

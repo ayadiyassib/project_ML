@@ -139,3 +139,66 @@ X = pipeline.transform(row)   # même nombre de colonnes que prepared.n_features
 * `POST /preprocessing/apply/` recalcule et écrase les artefacts, puis met `preprocessing_done=True` et réinitialise l'état du modèle (`model_trained=False`).
 * `POST /preprocessing/reset/` supprime tout `media/projects/<dataset_id>/` (prétraitement **et** modèles entraînés).
 * Supprimer un `Dataset` supprime automatiquement son fichier et son dossier d'artefacts (signaux `post_delete`).
+
+---
+
+## 📊 Exploration (EDA) & Diagnostics des modèles (`apps/eda/`, `apps/model_viz/`)
+
+Tous les graphiques sont construits en Python avec Plotly, sérialisés en JSON (`plotly.io.to_json`) puis rendus côté navigateur par `Plotly.newPlot` (`static/js/ml_charts.js`) : aucune image générée côté serveur, zoom / survol / masquage de séries natifs.
+
+### Étape 2 — Analyse exploratoire (`/eda/`)
+
+| Onglet | Contenu |
+| --- | --- |
+| **Vue d'ensemble** | Cartes métriques, constats automatiques (valeurs manquantes, asymétrie, outliers, colinéarité, déséquilibre des classes, doublons), équilibre de la cible, valeurs manquantes par colonne, tableau `describe()` complet (moyenne, médiane, écart-type, variance, min/max, Q1/Q3, IQR, skewness, kurtosis, uniques, cardinalité, outliers) et tableau des variables catégorielles. |
+| **Distributions** | Numérique : histogramme + KDE, boîte à moustaches, violon, violon par classe de la cible, test de normalité de D'Agostino. Catégorielle : fréquences absolues / relatives et donut. |
+| **Corrélations** | Heatmap Pearson ou Spearman, échelle divergente centrée sur 0, triangle supérieur masquable, paires les plus liées. |
+| **Nuages de points** | Scatter 2D (X, Y, couleur, droite MCO), vue 3D rotative, matrice de dispersion (pair plot). |
+
+L'EDA travaille sur le jeu brut (`load_dataframe`) : rien n'est réinjecté dans un modèle, donc aucune fuite de données. Les identifiants (`PassengerId`, `CustomerID`…) sont exclus des corrélations et des nuages de points.
+
+### Étape 5 — Diagnostics (`/diagnostics/`)
+
+| Tâche | Graphiques |
+| --- | --- |
+| **Régression** | Courbe d'ajustement avec IC 95 % (régression simple / polynomiale à 1 variable), prédit vs réel avec y = x, résidus vs prédits (±1,96σ), histogramme des résidus + loi normale, Q-Q plot. |
+| **Classification** | Matrice de confusion (effectifs + % par classe réelle), courbes ROC et Précision-Rappel (binaire ou un-contre-tous + micro-moyenne), précision / rappel / F1 par classe, frontière de décision sur projection PCA 2D. |
+| **Clustering** | Méthode du coude (WCSS) + silhouette moyenne pour k = 2…10 (disponible avant même l'entraînement), silhouette par observation, clusters et centroïdes sur PCA 2D. |
+| **Interprétabilité** | Importance de Gini (arbres, forêts), coefficients (modèles linéaires), importance par permutation (SVM, KNN, Naïf Bayes, MLP), courbe de perte du MLP. |
+
+### Contrat avec le moteur ML
+
+Le module lit le dernier modèle enregistré par `apps.ml_engine.services` :
+
+```text
+media/projects/<dataset_id>/models/latest_model.joblib   # estimateur scikit-learn ajusté
+media/projects/<dataset_id>/models/latest_result.json    # TrainingResult.to_dict()
+```
+
+* Les prédictions sont recalculées sur `prepared.X_test` avec le modèle sauvegardé : les graphiques décrivent exactement le modèle entraîné.
+* Un modèle plus ancien que `prepared.joblib` (prétraitement relancé), ou dont le nombre de variables ne correspond plus, est signalé et ignoré.
+* Les seuls ajustements faits ici servent la visualisation : K-Means pour k = 2…10 (coude) et un clone du modèle sur 2 composantes PCA (frontière de décision, signalé comme approximation).
+
+Réutiliser un graphique ailleurs (rapport, autre page) :
+
+```python
+from apps.eda.theme import make_chart
+from apps.model_viz.diagnostic_plots import ModelDiagnosticPlots
+
+chart = make_chart(ModelDiagnosticPlots.confusion_matrix(cm, labels), "cm", "Matrice de confusion")
+# template : {% include 'components/plotly_chart.html' with chart=chart %}
+#            + <script src="{% static 'js/ml_charts.js' %}"></script>
+```
+
+### Conventions visuelles
+
+* Thème sombre « Omakase » commun (`apps/eda/theme.py`) : fond transparent, encre papier de riz, grille discrète, police Noto Sans JP.
+* Couleurs catégorielles dans un ordre fixe, validé pour les daltonismes sur la surface `#1b1918`. La classe *i* garde toujours la même couleur et le même symbole de marqueur.
+* Échelle séquentielle bleue pour les magnitudes, divergente bleu ↔ rouge pour les corrélations, aucun graphique à double axe Y.
+* Les nuages de points sont échantillonnés (3 000 points en 2D, 2 000 en 3D, 1 200 pour le pair plot) ; les statistiques, elles, utilisent toujours toutes les lignes.
+
+### Tests
+
+```bash
+python manage.py test apps.eda apps.model_viz
+```
