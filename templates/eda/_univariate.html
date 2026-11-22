@@ -1,0 +1,59 @@
+{# HTMX partial: statistics + distribution charts for one column. #}
+<div class="space-y-4">
+    <!-- Column header -->
+    <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-5">
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+            <h3 class="font-mono text-sm text-paper">{{ record.name }}</h3>
+            {% include 'datasets/_kind_badge.html' with kind=record.kind %}
+            {% if record.is_discrete %}<span class="text-[10px] text-slate-500 font-mono">discrète</span>{% endif %}
+            <span class="ml-auto">{% include 'eda/_completeness_badge.html' with pct=record.completeness level=record.completeness_level %}</span>
+        </div>
+
+        {% if record.numeric and not record.numeric.empty %}
+        {% with s=record.numeric %}
+        <dl class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-px bg-slate-800/70 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Moyenne</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.mean|floatformat:3 }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Médiane</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.median|floatformat:3 }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Écart-type</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.std|floatformat:3 }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Variance</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.variance|floatformat:3 }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Min / Max</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.min|floatformat:"-3" }} / {{ s.max|floatformat:"-3" }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Q1 / Q3</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.q1|floatformat:"-3" }} / {{ s.q3|floatformat:"-3" }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">IQR</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.iqr|floatformat:3 }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Outliers (IQR)</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.outliers }} <span class="text-[10px] text-slate-500">· {{ s.outliers_pct|floatformat:1 }}%</span></dd></div>
+            <div class="bg-[#1b1918] p-3 col-span-2"><dt class="text-[9px] uppercase tracking-label text-slate-500">Asymétrie (skewness)</dt><dd class="text-sm text-paper mt-1"><span class="font-mono">{{ s.skewness|floatformat:3|default:"—" }}</span> <span class="text-[10px] text-slate-400">· {{ s.skew_label }}</span></dd></div>
+            <div class="bg-[#1b1918] p-3 col-span-2"><dt class="text-[9px] uppercase tracking-label text-slate-500">Aplatissement (kurtosis)</dt><dd class="text-sm text-paper mt-1"><span class="font-mono">{{ s.kurtosis|floatformat:3|default:"—" }}</span> <span class="text-[10px] text-slate-400">· {{ s.kurtosis_label }}</span></dd></div>
+            <div class="bg-[#1b1918] p-3 col-span-2"><dt class="text-[9px] uppercase tracking-label text-slate-500">Uniques · cardinalité</dt><dd class="font-mono text-sm text-paper mt-1">{{ record.unique }} <span class="text-[10px] text-slate-500">· ratio {{ record.cardinality_ratio|floatformat:3 }}</span></dd></div>
+            <div class="bg-[#1b1918] p-3 col-span-2"><dt class="text-[9px] uppercase tracking-label text-slate-500">Normalité</dt>
+                <dd class="text-sm text-paper mt-1">
+                    {% if s.normality %}
+                    <span class="font-mono">p = {{ s.normality.p_value|floatformat:4 }}</span>
+                    <span class="text-[10px] {% if s.normality.is_normal %}text-emerald-300{% else %}text-amber-300{% endif %}">· {% if s.normality.is_normal %}compatible normale{% else %}non normale (α = 5 %){% endif %}</span>
+                    {% else %}<span class="text-[11px] text-slate-500">Test non applicable</span>{% endif %}
+                </dd>
+            </div>
+        </dl>
+        {% endwith %}
+        {% elif record.categorical and not record.categorical.empty %}
+        {% with s=record.categorical %}
+        <dl class="grid grid-cols-2 sm:grid-cols-5 gap-px bg-slate-800/70 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Modalités</dt><dd class="font-mono text-sm text-paper mt-1">{{ record.unique }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Mode</dt><dd class="font-mono text-sm text-paper mt-1 truncate" title="{{ s.mode }}">{{ s.mode }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Part du mode</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.mode_pct|floatformat:1 }}%</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Équilibre (entropie)</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.balance|floatformat:2 }}</dd></div>
+            <div class="bg-[#1b1918] p-3"><dt class="text-[9px] uppercase tracking-label text-slate-500">Modalités rares (&lt;1 %)</dt><dd class="font-mono text-sm text-paper mt-1">{{ s.rare_categories }}</dd></div>
+        </dl>
+        {% endwith %}
+        {% else %}
+        <p class="text-xs text-slate-400">Aucune statistique distributionnelle pour ce type de colonne{% if record.datetime %} (dates du {{ record.datetime.min }} au {{ record.datetime.max }}){% endif %}.</p>
+        {% endif %}
+    </div>
+
+    <!-- Charts -->
+    {% if charts %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {% for chart in charts %}
+        {% include 'components/plotly_chart.html' with chart=chart %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

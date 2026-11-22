@@ -1,38 +1,404 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Exploration (EDA) | ML Studio{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-6">
-    <div class="flex items-center justify-between pb-6 border-b border-slate-800">
+<div class="max-w-[1500px] mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
-            <div class="inline-flex items-center space-x-2 text-xs font-mono text-indigo-400 mb-1">
-                <span>ÉTAPE 02</span>
-                <span>&bull;</span>
-                <span>MODULE EXPLORATION</span>
+            <div class="inline-flex items-center gap-2 text-[10px] font-mono mb-2">
+                <span class="px-2 py-0.5 rounded-[2px] border border-indigo-500/40 text-indigo-300 tracking-label uppercase">Étape 02</span>
+                <span class="text-slate-600">·</span>
+                <span class="text-slate-500 uppercase tracking-label">Module Exploration</span>
             </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">Analyse Exploratoire des Données (EDA)</h1>
-            <p class="text-slate-400 text-xs mt-1">Résumé statistique, valeurs manquantes, matrice de corrélation et graphiques interactifs Plotly.</p>
+            <h1 class="font-display text-[1.9rem] leading-tight font-semibold text-paper tracking-[0.01em]">Analyse Exploratoire des Données</h1>
+            <p class="text-slate-400 text-xs mt-1 max-w-2xl">
+                Statistiques descriptives, distributions, corrélations et nuages de points interactifs.
+                Repérez les valeurs manquantes, les outliers et les variables redondantes avant de configurer le prétraitement.
+            </p>
         </div>
+        {% if dataset %}
+        <div class="flex items-center gap-2 shrink-0">
+            <a href="{% url 'datasets:index' %}"
+               class="text-[11px] text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 px-3 py-2 rounded-lg transition-colors">
+                Changer de dataset
+            </a>
+            <a href="{% url 'preprocessing:index' %}"
+               class="flex items-center gap-1.5 text-[11px] font-medium text-indigo-300 hover:text-white bg-transparent hover:bg-indigo-500/10 border border-indigo-500/40 px-3 py-2 rounded-lg transition-colors">
+                Prétraitement
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </a>
+        </div>
+        {% endif %}
     </div>
 
-    <!-- Placeholder Card for Member 3 -->
-    <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-8 text-center space-y-4">
-        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mx-auto">
+    {% if not dataset %}
+    <!-- No active dataset -->
+    <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-10 text-center max-w-2xl mx-auto">
+        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-4">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
         </div>
-        <h3 class="text-lg font-semibold text-white">Zone d'Analyse Exploratoire</h3>
-        <p class="text-xs text-slate-400 max-w-md mx-auto">
-            Ce module (sous la responsabilité du Membre 3) affichera les distributions, histogrammes, boxplots, heatmaps de corrélation et statistiques descriptives univariées et bivariées.
+        <h3 class="text-base font-semibold text-white">Aucun jeu de données actif</h3>
+        <p class="text-xs text-slate-400 mt-2 max-w-md mx-auto">
+            L'exploration a besoin d'un dataset. Importez un fichier ou chargez un jeu de démonstration
+            (Iris, Titanic, California Housing…) pour obtenir son profil statistique complet.
         </p>
-        <div class="pt-4">
-            <a href="{% url 'core:dashboard' %}" class="inline-flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300">
-                &larr; Retour au Dashboard
-            </a>
+        <a href="{% url 'datasets:index' %}"
+           class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition-colors">
+            Aller à l'ingestion
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+        </a>
+    </div>
+
+    {% else %}
+
+    <!-- Metric cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-4">
+            <p class="text-[9px] uppercase tracking-label text-slate-500">Observations</p>
+            <p class="font-display text-2xl text-paper mt-1">{{ profile.rows_display }}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5 truncate">{{ dataset.name }}</p>
+        </div>
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-4">
+            <p class="text-[9px] uppercase tracking-label text-slate-500">Variables</p>
+            <p class="font-display text-2xl text-paper mt-1">{{ profile.cols }}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">{{ profile.numeric_count }} num · {{ profile.categorical_count }} cat{% if profile.datetime_count %} · {{ profile.datetime_count }} date{% endif %}</p>
+        </div>
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-4">
+            <p class="text-[9px] uppercase tracking-label text-slate-500">Complétude</p>
+            <p class="font-display text-2xl text-paper mt-1">{{ profile.completeness|floatformat:1 }}<span class="text-sm text-slate-400">%</span></p>
+            <p class="text-[10px] text-slate-500 mt-0.5">{{ profile.missing_cells }} cellule(s) vide(s)</p>
+        </div>
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-4">
+            <p class="text-[9px] uppercase tracking-label text-slate-500">Doublons</p>
+            <p class="font-display text-2xl text-paper mt-1">{{ profile.duplicates }}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">lignes identiques</p>
+        </div>
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-4">
+            <p class="text-[9px] uppercase tracking-label text-slate-500">Cible</p>
+            <p class="font-mono text-sm text-paper mt-2 truncate" title="{{ target|default:'' }}">{{ target|default:"—" }}</p>
+            <p class="text-[10px] text-slate-500 mt-1">{% if target_info %}{% if target_info.task == 'classification' %}{{ target_info.unique }} classes{% else %}continue{% endif %}{% else %}non définie{% endif %}</p>
+        </div>
+        <div class="bg-[#1b1918] border border-slate-800 rounded-xl p-4">
+            <p class="text-[9px] uppercase tracking-label text-slate-500">Mémoire</p>
+            <p class="font-display text-2xl text-paper mt-1">{{ profile.memory_human }}</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">DataFrame pandas</p>
         </div>
     </div>
+
+    <!-- Tabs -->
+    <div x-data="{ tab: (['overview','univariate','correlation','scatter'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview'),
+                   go(name) { this.tab = name; history.replaceState(null, '', '#' + name); this.$nextTick(() => window.mlCharts && mlCharts.render()); } }"
+         x-init="$nextTick(() => window.mlCharts && mlCharts.render())"
+         class="space-y-5">
+
+        <nav class="flex items-center gap-1 border-b border-slate-800 overflow-x-auto" role="tablist">
+            <button type="button" role="tab" @click="go('overview')" :aria-selected="tab === 'overview'"
+                    :class="tab === 'overview' ? 'text-paper border-indigo-500' : 'text-slate-400 border-transparent hover:text-slate-200'"
+                    class="px-4 py-2.5 text-xs font-medium border-b-2 -mb-px whitespace-nowrap transition-colors">Vue d'ensemble</button>
+            <button type="button" role="tab" @click="go('univariate')" :aria-selected="tab === 'univariate'"
+                    :class="tab === 'univariate' ? 'text-paper border-indigo-500' : 'text-slate-400 border-transparent hover:text-slate-200'"
+                    class="px-4 py-2.5 text-xs font-medium border-b-2 -mb-px whitespace-nowrap transition-colors">Distributions</button>
+            <button type="button" role="tab" @click="go('correlation')" :aria-selected="tab === 'correlation'"
+                    :class="tab === 'correlation' ? 'text-paper border-indigo-500' : 'text-slate-400 border-transparent hover:text-slate-200'"
+                    class="px-4 py-2.5 text-xs font-medium border-b-2 -mb-px whitespace-nowrap transition-colors">Corrélations</button>
+            <button type="button" role="tab" @click="go('scatter')" :aria-selected="tab === 'scatter'"
+                    :class="tab === 'scatter' ? 'text-paper border-indigo-500' : 'text-slate-400 border-transparent hover:text-slate-200'"
+                    class="px-4 py-2.5 text-xs font-medium border-b-2 -mb-px whitespace-nowrap transition-colors">Nuages de points</button>
+        </nav>
+
+        <!-- ========== TAB: OVERVIEW ========== -->
+        <section x-show="tab === 'overview'" class="space-y-5">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                <!-- Insights -->
+                <div class="bg-[#1b1918] border border-slate-800 rounded-2xl p-5 xl:row-span-2">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Ce que disent les données</h3>
+                        <span class="text-[10px] font-mono text-slate-500">{{ insights|length }} constat(s)</span>
+                    </div>
+                    <ul class="space-y-2 max-h-[560px] overflow-y-auto pr-1">
+                        {% for insight in insights %}
+                        <li class="flex gap-2.5 p-2.5 rounded-lg border border-slate-800 bg-slate-900/30">
+                            {% if insight.level == 'critical' %}
+                            <span class="shrink-0 mt-0.5 w-4 h-4 rounded-full bg-rose-500/15 text-rose-300 flex items-center justify-center" title="Critique"><svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg></span>
+                            {% elif insight.level == 'warning' %}
+                            <span class="shrink-0 mt-0.5 w-4 h-4 rounded-full bg-amber-500/15 text-amber-300 flex items-center justify-center" title="Attention"><svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-width="3" d="M12 7v6m0 4h.01"/></svg></span>
+                            {% else %}
+                            <span class="shrink-0 mt-0.5 w-4 h-4 rounded-full bg-blue-500/15 text-blue-300 flex items-center justify-center" title="Information"><svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-width="3" d="M12 11v6m0-10h.01"/></svg></span>
+                            {% endif %}
+                            <span class="min-w-0">
+                                <span class="block text-[11px] font-medium text-slate-200">{{ insight.title }}</span>
+                                <span class="block text-[10px] text-slate-400 mt-0.5 leading-relaxed">{{ insight.text }}</span>
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li class="flex gap-2.5 p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04]">
+                            <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span class="text-[11px] text-slate-300">Aucun signal d'alerte : données complètes, sans doublon ni asymétrie marquée.</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {% if charts.target %}
+                <div class="xl:col-span-2 min-w-0">{% include 'components/plotly_chart.html' with chart=charts.target %}</div>
+                {% endif %}
+                {% if charts.missing %}
+                <div class="xl:col-span-2 min-w-0">{% include 'components/plotly_chart.html' with chart=charts.missing %}</div>
+                {% endif %}
+                {% if charts.target_corr %}
+                <div class="xl:col-span-2 min-w-0">{% include 'components/plotly_chart.html' with chart=charts.target_corr %}</div>
+                {% endif %}
+                {% if not charts.missing and not charts.target %}
+                <div class="xl:col-span-2 bg-[#1b1918] border border-slate-800 rounded-2xl p-6 flex items-center gap-4">
+                    <svg class="w-8 h-8 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div>
+                        <p class="text-sm text-paper">Aucune valeur manquante</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Aucune cible définie : choisissez-la au prétraitement pour voir l'équilibre des classes{% if dataset.task_hint == 'clustering' %} (ou restez en clustering K-Means){% endif %}.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Numeric statistics table -->
+            {% if summary_rows %}
+            <div class="bg-[#1b1918] border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Statistiques descriptives — variables numériques</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Tendance centrale, dispersion, forme (asymétrie, aplatissement) et outliers selon la règle IQR × 1,5.</p>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500">{{ summary_rows|length }} variable(s)</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-[11px]">
+                        <thead class="text-[9px] uppercase tracking-label text-slate-500 bg-slate-900/40">
+                            <tr>
+                                <th class="text-left font-medium px-4 py-2.5 sticky left-0 bg-[#171514]">Variable</th>
+                                <th class="text-left font-medium px-3 py-2.5">Complétude</th>
+                                <th class="text-right font-medium px-3 py-2.5">Moyenne</th>
+                                <th class="text-right font-medium px-3 py-2.5">Médiane</th>
+                                <th class="text-right font-medium px-3 py-2.5">Écart-type</th>
+                                <th class="text-right font-medium px-3 py-2.5">Variance</th>
+                                <th class="text-right font-medium px-3 py-2.5">Min</th>
+                                <th class="text-right font-medium px-3 py-2.5">Q1</th>
+                                <th class="text-right font-medium px-3 py-2.5">Q3</th>
+                                <th class="text-right font-medium px-3 py-2.5">Max</th>
+                                <th class="text-right font-medium px-3 py-2.5">IQR</th>
+                                <th class="text-right font-medium px-3 py-2.5" title="Asymétrie (skewness)">Skew</th>
+                                <th class="text-right font-medium px-3 py-2.5" title="Aplatissement (excess kurtosis)">Kurt</th>
+                                <th class="text-right font-medium px-3 py-2.5">Uniques</th>
+                                <th class="text-right font-medium px-3 py-2.5" title="Uniques / valeurs non nulles">Cardin.</th>
+                                <th class="text-right font-medium px-3 py-2.5">Outliers</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/70 font-mono tabular-nums text-slate-300">
+                            {% for row in summary_rows %}
+                            <tr class="hover:bg-slate-900/40">
+                                <td class="px-4 py-2 sticky left-0 bg-[#1b1918] text-slate-100 max-w-[180px] truncate" title="{{ row.name }}">
+                                    {{ row.name }}{% if row.name == target %} <span class="text-[9px] text-emerald-300 font-sans">cible</span>{% endif %}
+                                </td>
+                                <td class="px-3 py-2">{% include 'eda/_completeness_badge.html' with pct=row.completeness level=row.completeness_level %}</td>
+                                <td class="px-3 py-2 text-right">{{ row.mean|floatformat:3 }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.median|floatformat:3 }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.std|floatformat:3 }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.variance|floatformat:3 }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.min|floatformat:"-3" }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.q1|floatformat:"-3" }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.q3|floatformat:"-3" }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.max|floatformat:"-3" }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.iqr|floatformat:3 }}</td>
+                                <td class="px-3 py-2 text-right {% if row.high_skew %}text-amber-300{% endif %}" title="{{ row.skew_label }}">{{ row.skewness|floatformat:2|default:"—" }}</td>
+                                <td class="px-3 py-2 text-right" title="{{ row.kurtosis_label }}">{{ row.kurtosis|floatformat:2|default:"—" }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.unique }}</td>
+                                <td class="px-3 py-2 text-right">{{ row.cardinality_ratio|floatformat:3 }}</td>
+                                <td class="px-3 py-2 text-right {% if row.outliers_pct >= 5 %}text-amber-300{% endif %}">{{ row.outliers }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Categorical statistics table -->
+            {% if categorical_rows %}
+            <div class="bg-[#1b1918] border border-slate-800 rounded-2xl overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-800/80">
+                    <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Variables catégorielles</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Mode, cardinalité et équilibre (entropie normalisée : 1 = modalités équiprobables).</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-[11px]">
+                        <thead class="text-[9px] uppercase tracking-label text-slate-500 bg-slate-900/40">
+                            <tr>
+                                <th class="text-left font-medium px-4 py-2.5">Variable</th>
+                                <th class="text-left font-medium px-3 py-2.5">Type</th>
+                                <th class="text-left font-medium px-3 py-2.5">Complétude</th>
+                                <th class="text-right font-medium px-3 py-2.5">Modalités</th>
+                                <th class="text-right font-medium px-3 py-2.5">Cardin.</th>
+                                <th class="text-left font-medium px-3 py-2.5">Mode</th>
+                                <th class="text-right font-medium px-3 py-2.5">Part du mode</th>
+                                <th class="text-right font-medium px-3 py-2.5">Équilibre</th>
+                                <th class="text-right font-medium px-3 py-2.5">Rares</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/70 text-slate-300">
+                            {% for row in categorical_rows %}
+                            <tr class="hover:bg-slate-900/40">
+                                <td class="px-4 py-2 font-mono text-slate-100 max-w-[200px] truncate" title="{{ row.name }}">{{ row.name }}</td>
+                                <td class="px-3 py-2">{% include 'datasets/_kind_badge.html' with kind=row.kind %}</td>
+                                <td class="px-3 py-2">{% include 'eda/_completeness_badge.html' with pct=row.completeness level=row.completeness_level %}</td>
+                                <td class="px-3 py-2 text-right font-mono">{{ row.unique }}</td>
+                                <td class="px-3 py-2 text-right font-mono">{{ row.cardinality_ratio|floatformat:3 }}</td>
+                                <td class="px-3 py-2 font-mono max-w-[160px] truncate" title="{{ row.categorical.mode }}">{{ row.categorical.mode }}</td>
+                                <td class="px-3 py-2 text-right font-mono">{{ row.categorical.mode_pct|floatformat:1 }}%</td>
+                                <td class="px-3 py-2 text-right font-mono">{{ row.categorical.balance|floatformat:2 }}</td>
+                                <td class="px-3 py-2 text-right font-mono">{{ row.categorical.rare_categories }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- ========== TAB: UNIVARIATE ========== -->
+        <section x-show="tab === 'univariate'" x-cloak class="space-y-4">
+            <form hx-get="{% url 'eda:univariate' %}" hx-target="#univariate-panel" hx-trigger="intersect once, change"
+                  hx-indicator="#univariate-loading"
+                  class="bg-[#1b1918] border border-slate-800 rounded-2xl px-5 py-4 flex flex-wrap items-end gap-4">
+                <div class="w-full sm:w-80">
+                    <label for="uni-column" class="block text-[11px] font-medium text-slate-300 mb-1.5">Variable à analyser</label>
+                    <select id="uni-column" name="column"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500">
+                        {% for record in records %}
+                        <option value="{{ record.name }}" {% if record.name == default_column %}selected{% endif %}>
+                            {{ record.name }} — {% if record.kind == 'numeric' %}numérique{% elif record.kind == 'categorical' %}catégorielle{% elif record.kind == 'boolean' %}booléenne{% elif record.kind == 'datetime' %}date{% else %}{{ record.kind }}{% endif %}{% if record.name == target %} (cible){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <p class="text-[10px] text-slate-500 flex-1 min-w-[200px]">
+                    Numérique : histogramme + KDE, boîte à moustaches et violon{% if target %}, puis distribution par classe de « {{ target }} »{% endif %}.
+                    Catégorielle : fréquences absolues / relatives et donut.
+                </p>
+                <span id="univariate-loading" class="htmx-indicator text-[10px] font-mono text-slate-500">calcul…</span>
+            </form>
+            <div id="univariate-panel">
+                <div class="h-64 rounded-2xl border border-slate-800 bg-[#1b1918] animate-pulse"></div>
+            </div>
+        </section>
+
+        <!-- ========== TAB: CORRELATION ========== -->
+        <section x-show="tab === 'correlation'" x-cloak class="space-y-4">
+            <form hx-get="{% url 'eda:correlation' %}" hx-target="#correlation-panel" hx-trigger="intersect once, change"
+                  hx-indicator="#correlation-loading"
+                  class="bg-[#1b1918] border border-slate-800 rounded-2xl px-5 py-4 flex flex-wrap items-center gap-4">
+                <fieldset class="flex items-center gap-1 p-1 rounded-lg border border-slate-800 bg-slate-900/40">
+                    <legend class="sr-only">Méthode</legend>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="method" value="pearson" class="peer sr-only" checked>
+                        <span class="block px-3 py-1.5 rounded-md text-[11px] text-slate-400 peer-checked:bg-indigo-500/15 peer-checked:text-indigo-200 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500/40">Pearson</span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="method" value="spearman" class="peer sr-only">
+                        <span class="block px-3 py-1.5 rounded-md text-[11px] text-slate-400 peer-checked:bg-indigo-500/15 peer-checked:text-indigo-200 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500/40">Spearman</span>
+                    </label>
+                </fieldset>
+                <input type="hidden" name="mask" value="0">
+                <label class="flex items-center gap-2 text-[11px] text-slate-300 cursor-pointer">
+                    <input type="checkbox" name="mask" value="1" checked class="rounded border-slate-600 bg-slate-900">
+                    Masquer le triangle supérieur
+                </label>
+                <span id="correlation-loading" class="htmx-indicator text-[10px] font-mono text-slate-500">calcul…</span>
+                <span class="ml-auto text-[10px] text-slate-500">Identifiants exclus · échelle divergente centrée sur 0</span>
+            </form>
+            <div id="correlation-panel">
+                <div class="h-96 rounded-2xl border border-slate-800 bg-[#1b1918] animate-pulse"></div>
+            </div>
+        </section>
+
+        <!-- ========== TAB: SCATTER ========== -->
+        <section x-show="tab === 'scatter'" x-cloak class="space-y-5">
+            {% if numeric_columns|length < 2 %}
+            {% include 'eda/_error.html' with error="Au moins deux variables numériques sont nécessaires pour les nuages de points." %}
+            {% else %}
+            <!-- 2D scatter -->
+            <div class="grid grid-cols-1 xl:grid-cols-4 gap-4">
+                <form hx-get="{% url 'eda:scatter' %}" hx-target="#scatter-panel" hx-trigger="intersect once, change"
+                      class="bg-[#1b1918] border border-slate-800 rounded-2xl p-5 space-y-3 h-fit">
+                    <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Nuage 2D</h3>
+                    {% include 'eda/_axis_select.html' with name='x' label='Axe X' options=numeric_columns selected=defaults.x %}
+                    {% include 'eda/_axis_select.html' with name='y' label='Axe Y' options=numeric_columns selected=defaults.y %}
+                    {% include 'eda/_axis_select.html' with name='color' label='Couleur' options=color_columns selected=defaults.color optional=True %}
+                    <label class="flex items-center gap-2 text-[11px] text-slate-300 cursor-pointer pt-1">
+                        <input type="checkbox" name="trend" value="1" class="rounded border-slate-600 bg-slate-900">
+                        Droite de tendance (MCO)
+                    </label>
+                </form>
+                <div id="scatter-panel" class="xl:col-span-3 min-w-0">
+                    <div class="h-[440px] rounded-2xl border border-slate-800 bg-[#1b1918] animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- 3D scatter -->
+            {% if numeric_columns|length >= 3 %}
+            <div class="grid grid-cols-1 xl:grid-cols-4 gap-4">
+                <form hx-get="{% url 'eda:scatter3d' %}" hx-target="#scatter3d-panel" hx-trigger="intersect once, change"
+                      class="bg-[#1b1918] border border-slate-800 rounded-2xl p-5 space-y-3 h-fit">
+                    <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Vue 3D rotative</h3>
+                    {% include 'eda/_axis_select.html' with name='x' label='Axe X' options=numeric_columns selected=defaults.x %}
+                    {% include 'eda/_axis_select.html' with name='y' label='Axe Y' options=numeric_columns selected=defaults.y %}
+                    {% include 'eda/_axis_select.html' with name='z' label='Axe Z' options=numeric_columns selected=defaults.z %}
+                    {% include 'eda/_axis_select.html' with name='color' label='Couleur' options=color_columns selected=defaults.color optional=True %}
+                </form>
+                <div id="scatter3d-panel" class="xl:col-span-3 min-w-0">
+                    <div class="h-[520px] rounded-2xl border border-slate-800 bg-[#1b1918] animate-pulse"></div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Pair plot -->
+            <div class="grid grid-cols-1 xl:grid-cols-4 gap-4">
+                <form hx-get="{% url 'eda:pairplot' %}" hx-target="#pairplot-panel" hx-trigger="intersect once, change"
+                      class="bg-[#1b1918] border border-slate-800 rounded-2xl p-5 space-y-3 h-fit">
+                    <div>
+                        <h3 class="font-display text-[15px] font-semibold text-paper tracking-normal">Matrice de dispersion</h3>
+                        <p class="text-[10px] text-slate-500 mt-0.5">{{ max_pairplot }} variables au maximum.</p>
+                    </div>
+                    <div class="space-y-1 max-h-64 overflow-y-auto pr-1">
+                        {% for column in numeric_columns %}
+                        <label class="flex items-center gap-2 px-2 py-1.5 rounded-md border border-slate-800 bg-slate-900/30 cursor-pointer hover:border-slate-700">
+                            <input type="checkbox" name="columns" value="{{ column }}" {% if column in defaults.pairplot %}checked{% endif %}
+                                   class="rounded border-slate-600 bg-slate-900">
+                            <span class="font-mono text-[11px] text-slate-200 truncate">{{ column }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% include 'eda/_axis_select.html' with name='color' label='Couleur' options=color_columns selected=defaults.color optional=True %}
+                </form>
+                <div id="pairplot-panel" class="xl:col-span-3 min-w-0">
+                    <div class="h-[600px] rounded-2xl border border-slate-800 bg-[#1b1918] animate-pulse"></div>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
+{% block extra_scripts %}
+<script src="{% static 'js/ml_charts.js' %}"></script>
+{% endblock %}
