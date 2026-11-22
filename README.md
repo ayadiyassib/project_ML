@@ -147,3 +147,66 @@ X = pipeline.transform(row)   # même nombre de colonnes que prepared.n_features
 * `POST /preprocessing/apply/` recalcule et écrase les artefacts, puis met `preprocessing_done=True` et réinitialise l'état du modèle (`model_trained=False`).
 * `POST /preprocessing/reset/` supprime tout `media/projects/<dataset_id>/` (prétraitement **et** modèles entraînés).
 * Supprimer un `Dataset` supprime automatiquement son fichier et son dossier d'artefacts (signaux `post_delete`).
+## 🤖 Moteur Machine Learning (`apps/ml_engine/`)
+
+Le moteur ML expose **11 algorithmes** couvrant l'ensemble des tâches supervisées et non supervisées, tous paramétrables depuis l'interface web sans écrire une ligne de code.
+
+### Algorithmes disponibles
+
+| Famille | Algorithme | Tâche |
+| --- | --- | --- |
+| **Régression** | Régression Linéaire Simple & Multiple | Régression |
+| | Régression Polynomiale (degré 2–5) | Régression |
+| | Régression Logistique (L1 / L2) | Classification |
+| **Arbres** | Arbre de Décision (Classifier & Regressor) | Classification / Régression |
+| | Forêt Aléatoire — Random Forest | Classification / Régression |
+| **Géométrique / Probabiliste** | Support Vector Machine — SVM / SVR | Classification / Régression |
+| | Naïf Bayésien — GaussianNB & MultinomialNB | Classification |
+| | K Plus Proches Voisins — KNN | Classification / Régression |
+| **Non supervisé** | K-Means Clustering | Clustering |
+| **Réseaux de neurones** | Perceptron Multi-Couches — MLP | Classification / Régression |
+
+### Validation & Métriques
+
+* **Validation croisée** : `StratifiedKFold` (classification) et `KFold` (régression), K ∈ [3, 10].
+* **Classification** : Accuracy, Précision, Rappel, F1-Score (macro / weighted), ROC-AUC.
+* **Régression** : MAE, MSE, RMSE, R², R² ajusté.
+* **Clustering** : Score de Silhouette, Indice de Davies-Bouldin, Inertie WCSS.
+* **Leaderboard** : tableau comparatif multi-modèles avec badge « Best Model » automatique.
+
+---
+
+## 📦 Export & Inférence (`apps/export_inference/`)
+
+Une fois un modèle entraîné, le module Export & Inférence permet de valoriser et déployer le résultat.
+
+### Fonctionnalités
+
+| Fonctionnalité | Description |
+| --- | --- |
+| **Export `.joblib`** | Téléchargement du pipeline complet (préprocesseur + modèle) en un clic. |
+| **Export Prédictions CSV** | Fichier CSV contenant features, valeur réelle, valeur prédite et résidu / probabilité. |
+| **Rapport PDF** | Rapport d'analyse automatisé (xhtml2pdf) : résumé dataset, prétraitements, hyperparamètres, métriques Train / Test / CV et recommandations. |
+| **Inference Playground** | Formulaire web dynamique généré à partir des features du dataset. Retourne instantanément la prédiction et la probabilité de confiance associée. |
+
+### Rechargement du modèle exporté
+
+```python
+import joblib, pandas as pd
+
+pipeline = joblib.load("model_export.joblib")
+new_data = pd.DataFrame([{"feature_1": 5.1, "feature_2": "value", ...}])
+predictions = pipeline.predict(new_data)
+```
+
+### URLs du module
+
+| Action | URL |
+| --- | --- |
+| Page principale Export & Inférence | `GET  /export_inference/` |
+| Télécharger le modèle `.joblib` | `GET  /export_inference/download/model/` |
+| Télécharger les prédictions `.csv` | `GET  /export_inference/download/predictions/` |
+| Télécharger le rapport PDF | `GET  /export_inference/download/pdf/` |
+| Prédiction en direct (HTMX / JSON) | `POST /export_inference/predict/` |
+
+---
