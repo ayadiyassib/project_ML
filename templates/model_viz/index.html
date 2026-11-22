@@ -134,6 +134,23 @@
             <span class="text-[10px] font-mono text-slate-500">Méthode du coude (k = 2 … 10)…</span>
         </div>
         {% endif %}
+
+        {% if compare_count >= 2 %}
+        <div class="lg:col-span-2 pt-4 mt-2 border-t border-slate-800 flex flex-wrap items-end justify-between gap-2">
+            <div>
+                <h2 class="font-display text-lg text-paper">Comparaison des modèles entraînés</h2>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                    Les {{ compare_count }} algorithmes du classement, évalués sur le même jeu de test.
+                    Chaque algorithme garde toujours la même couleur.
+                </p>
+            </div>
+            <a href="{% url 'ml_engine:index' %}" class="text-[11px] text-indigo-300 hover:text-white">Voir le classement →</a>
+        </div>
+        <div hx-get="{% url 'model_viz:compare' %}" hx-trigger="intersect once" hx-swap="outerHTML"
+             class="lg:col-span-2 h-[440px] rounded-2xl border border-slate-800 bg-[#1b1918] animate-pulse flex items-center justify-center">
+            <span class="text-[10px] font-mono text-slate-500">Comparaison des {{ compare_count }} modèles…</span>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
     {% endif %}

@@ -505,8 +505,11 @@ def _top(names: list[str], values: np.ndarray, errors: np.ndarray | None = None,
     return ([names[i] for i in order], values[order], errors[order] if errors is not None else None)
 
 
-def attribute_importance(model: TrainedModel, prepared: PreparedData) -> Chart | None:
-    """Importance read from the fitted model (trees, forests, linear models)."""
+def importance_data(model: TrainedModel, prepared: PreparedData) -> dict[str, Any] | None:
+    """Importance read from the fitted model (trees, forests, linear models).
+
+    Shared by the interactive chart and the static PDF figure.
+    """
     estimator = model.estimator
     final = final_estimator(estimator)
     names = list(prepared.feature_names)
@@ -516,12 +519,11 @@ def attribute_importance(model: TrainedModel, prepared: PreparedData) -> Chart |
         if len(values) != len(names):
             return None
         top_names, top_values, _ = _top(names, values, by_abs=False)
-        return make_chart(
-            Plots.feature_importance(top_names, top_values, "Importance (réduction moyenne d'impureté)"),
-            "importance", "Importance des variables",
-            subtitle=f"Importance de Gini (MDI) · {min(TOP_FEATURES, len(names))} premières variables",
-            height=max(260, 26 * len(top_names) + 90),
-        )
+        return {
+            "names": top_names, "values": top_values, "signed": False,
+            "axis": "Importance (réduction moyenne d'impureté)", "title": "Importance des variables",
+            "subtitle": f"Importance de Gini (MDI) · {min(TOP_FEATURES, len(names))} premières variables",
+        }
 
     linear = getattr(estimator, "regressor_", None) or final
     coef = getattr(linear, "coef_", None)
@@ -539,21 +541,28 @@ def attribute_importance(model: TrainedModel, prepared: PreparedData) -> Chart |
         return None
 
     if coef.ndim == 2 and coef.shape[0] > 1:
-        values = np.abs(coef).mean(axis=0)
-        top_names, top_values, _ = _top(names, values, by_abs=False)
-        return make_chart(
-            Plots.feature_importance(top_names, top_values, "|coefficient| moyen sur les classes"),
-            "importance", "Poids des variables",
-            subtitle="Moyenne des coefficients absolus (variables normalisées, modèle multi-classe)",
-            height=max(260, 26 * len(top_names) + 90),
-        )
-    values = coef.ravel()
-    top_names, top_values, _ = _top(names, values)
+        top_names, top_values, _ = _top(names, np.abs(coef).mean(axis=0), by_abs=False)
+        return {
+            "names": top_names, "values": top_values, "signed": False,
+            "axis": "|coefficient| moyen sur les classes", "title": "Poids des variables",
+            "subtitle": "Moyenne des coefficients absolus (variables normalisées, modèle multi-classe)",
+        }
+    top_names, top_values, _ = _top(names, coef.ravel())
+    return {
+        "names": top_names, "values": top_values, "signed": True,
+        "axis": "Coefficient", "title": "Coefficients du modèle",
+        "subtitle": "Triés par |β| · rouge = effet positif, bleu = effet négatif",
+    }
+
+
+def attribute_importance(model: TrainedModel, prepared: PreparedData) -> Chart | None:
+    data = importance_data(model, prepared)
+    if data is None:
+        return None
     return make_chart(
-        Plots.feature_importance(top_names, top_values, "Coefficient", signed=True),
-        "importance", "Coefficients du modèle",
-        subtitle="Triés par |β| · rouge = effet positif, bleu = effet négatif",
-        height=max(260, 26 * len(top_names) + 90),
+        Plots.feature_importance(data["names"], data["values"], data["axis"], signed=data["signed"]),
+        "importance", data["title"], subtitle=data["subtitle"],
+        height=max(260, 26 * len(data["names"]) + 90),
     )
 
 
@@ -701,6 +710,143 @@ def clustering_diagnostics(model: TrainedModel, prepared: PreparedData) -> dict[
             height=460,
         ))
     return {"charts": charts, "summary": summary}
+
+
+# ---------------------------------------------------------------------------
+# Model comparison (every algorithm of the ML engine leaderboard)
+# ---------------------------------------------------------------------------
+
+# Fixed order = fixed colour per algorithm, whatever subset was trained.
+COMPARISON_ORDER: dict[str, list[str]] = {
+    "classification": ["logistic_regression", "decision_tree", "random_forest", "svm",
+                       "naive_bayes", "knn", "neural_network"],
+    "regression": ["simple_linear_regression", "multiple_linear_regression", "polynomial_regression",
+                   "decision_tree", "random_forest", "svm", "knn", "neural_network"],
+}
+LINE_DASHES = ("solid", "dash", "dot", "dashdot", "longdash", "longdashdot", "solid", "dash")
+
+
+def _leaderboard(dataset: Dataset) -> list[dict[str, Any]]:
+    path = model_paths(dataset)["dir"] / "leaderboard.json"
+    if not path.exists():
+        return []
+    try:
+        board = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    return board if isinstance(board, list) else []
+
+
+def _algo_model_file(dataset: Dataset, algo_key: str) -> Path:
+    """Mirror of ``apps.ml_engine.services.algo_model_path`` (read-only, no mkdir)."""
+    return model_paths(dataset)["dir"] / f"model_{algo_key}.joblib"
+
+
+def _fresh(path: Path, dataset: Dataset) -> bool:
+    prepared_path = artifact_paths(dataset)["prepared"]
+    return path.exists() and (not prepared_path.exists() or path.stat().st_mtime >= prepared_path.stat().st_mtime)
+
+
+def comparison_candidates(dataset: Dataset, prepared: PreparedData) -> int:
+    """Number of leaderboard models that can be compared (cheap: no unpickling)."""
+    order = COMPARISON_ORDER.get(prepared.task_type, [])
+    keys = {entry.get("algo_key") for entry in _leaderboard(dataset) if entry.get("task_type") == prepared.task_type}
+    return sum(1 for key in keys if key in order and _fresh(_algo_model_file(dataset, key), dataset))
+
+
+def comparable_models(dataset: Dataset, prepared: PreparedData) -> list[tuple[int, TrainedModel]]:
+    """``(colour slot, model)`` for every up-to-date leaderboard model of the current task."""
+    order = COMPARISON_ORDER.get(prepared.task_type, [])
+    models: list[tuple[int, TrainedModel]] = []
+    for entry in _leaderboard(dataset):
+        key = entry.get("algo_key")
+        if entry.get("task_type") != prepared.task_type or key not in order:
+            continue
+        path = _algo_model_file(dataset, key)
+        if not _fresh(path, dataset):
+            continue
+        try:
+            estimator = joblib.load(path)
+        except Exception:  # noqa: BLE001
+            continue
+        model = TrainedModel(estimator, entry.get("algo_name") or key, key, prepared.task_type, entry)
+        if compatibility_issue(model, prepared) is None:
+            models.append((order.index(key), model))
+    return sorted(models, key=lambda item: item[0])
+
+
+def comparison_curves(models: list[tuple[int, TrainedModel]], prepared: PreparedData) -> dict[str, Any]:
+    """ROC / PR curve of each classifier on the same test split.
+
+    Binary: curve of the positive class. Multi-class: micro-average, so that
+    each model is summarised by a single curve.
+    """
+    X_test = _dense(prepared.X_test)
+    y_test = np.asarray(prepared.y_test)
+    roc, pr = [], []
+    classes = None
+    for slot, model in models:
+        scores = class_scores(model.estimator, X_test)
+        if scores is None:
+            continue
+        classes = class_order(model.estimator, y_test, y_test)
+        style = {"color": series_color(slot), "dash": LINE_DASHES[slot % len(LINE_DASHES)], "slot": slot}
+        if len(classes) == 2:
+            score = scores[:, 1] if scores.ndim == 2 and scores.shape[1] == 2 else scores.ravel()
+            y_bin, s = (y_test == classes[1]).astype(int), score
+        else:
+            if scores.ndim != 2 or scores.shape[1] != len(classes):
+                continue
+            y_bin, s = label_binarize(y_test, classes=classes).ravel(), scores.ravel()
+        if y_bin.min() == y_bin.max():
+            continue
+        fpr, tpr, _ = roc_curve(y_bin, s)
+        precision, recall, _ = precision_recall_curve(y_bin, s)
+        roc.append({"name": model.name, "fpr": fpr, "tpr": tpr, "auc": float(auc(fpr, tpr)), **style})
+        pr.append({"name": model.name, "precision": precision, "recall": recall,
+                   "ap": float(average_precision_score(y_bin, s)), **style})
+    baseline = None
+    if classes is not None:
+        baseline = float(np.mean(y_test == classes[1])) if len(classes) == 2 else 1 / len(classes)
+    return {"roc": roc, "pr": pr, "baseline": baseline, "binary": classes is not None and len(classes) == 2}
+
+
+def regression_errors(models: list[tuple[int, TrainedModel]], prepared: PreparedData) -> list[dict[str, Any]]:
+    """Absolute test errors of each regressor, best (lowest median) first."""
+    X_test = _dense(prepared.X_test)
+    y_test = np.asarray(prepared.y_test, dtype=float)
+    rows = []
+    for slot, model in models:
+        predicted = np.asarray(model.estimator.predict(X_test), dtype=float)
+        errors = np.abs(y_test - predicted)
+        rows.append({"name": model.name, "errors": errors, "color": series_color(slot),
+                     "median": float(np.median(errors)), "r2": float(r2_score(y_test, predicted))})
+    return sorted(rows, key=lambda row: row["median"])
+
+
+def comparison_charts(dataset: Dataset, prepared: PreparedData) -> list[Chart]:
+    models = comparable_models(dataset, prepared)
+    if len(models) < 2:
+        raise DiagnosticsError("Entraînez au moins deux algorithmes à l'étape 4 pour les comparer.")
+    names = ", ".join(model.name for _slot, model in models)
+    if prepared.task_type == "classification":
+        curves = comparison_curves(models, prepared)
+        kind = "classe positive" if curves["binary"] else "micro-moyenne sur les classes"
+        return [
+            make_chart(Plots.roc_curves(curves["roc"]), "compare-roc", "Comparaison des courbes ROC",
+                       subtitle=f"{len(curves['roc'])} modèles sur le même jeu de test · {kind}", height=440),
+            make_chart(Plots.pr_curves(curves["pr"], curves["baseline"]), "compare-pr",
+                       "Comparaison des courbes Précision-Rappel",
+                       subtitle=f"Average Precision de chaque modèle · {kind}", height=440),
+        ]
+    rows = regression_errors(models, prepared)
+    return [make_chart(
+        Plots.error_boxplot([f"{r['name']} · R² = {r['r2']:.3f}" for r in rows], [r["errors"] for r in rows],
+                            [r["color"] for r in rows]),
+        "compare-errors", "Comparaison des erreurs absolues |y − ŷ|",
+        subtitle=f"Jeu de test · du modèle le plus précis (médiane la plus basse) au moins précis · {names}",
+        height=max(300, 56 * len(rows) + 120), wide=True,
+    )]
 
 
 # ---------------------------------------------------------------------------

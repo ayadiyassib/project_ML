@@ -17,6 +17,7 @@ from apps.datasets.models import Dataset
 from apps.preprocessing.services import load_prepared
 from apps.ml_engine.services import load_latest_result, load_leaderboard
 from apps.export_inference.exporter import ExportError
+from apps.model_viz.report_charts import report_images
 
 
 def build_report_context(dataset: Dataset) -> Dict[str, Any]:
@@ -39,6 +40,8 @@ def build_report_context(dataset: Dataset) -> Dict[str, Any]:
         "latest_result": latest_result,
         "leaderboard": leaderboard,
         "champion": champion,
+        # Static diagnostic charts (confusion matrix, ROC, residuals, clusters…) from the diagnostics module.
+        "diagnostic_images": report_images(dataset),
         "generated_at": datetime.datetime.now().strftime("%d/%m/%Y à %H:%M"),
     }
 

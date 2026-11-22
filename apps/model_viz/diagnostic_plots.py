@@ -263,6 +263,23 @@ class ModelDiagnosticPlots:
         return fig
 
     @staticmethod
+    def error_boxplot(names: Sequence[str], errors: Sequence[np.ndarray], colors: Sequence[str]) -> go.Figure:
+        """Absolute-error distribution of several regressors, best model on top."""
+        fig = go.Figure()
+        for name, values, color in zip(names, errors, colors):
+            values = np.asarray(values, dtype=float)
+            fig.add_trace(go.Box(
+                x=values[_sample_idx(len(values))], name=theme.short_label(name, 46), orientation="h",
+                boxpoints="outliers", boxmean=True,
+                marker=dict(color=color, size=3, opacity=0.6),
+                line=dict(color=color, width=1.5), fillcolor=theme.rgba(color, 0.22),
+                hovertemplate="%{x:.4g}<extra>" + str(name) + "</extra>",
+            ))
+        fig.update_layout(xaxis_title="Erreur absolue |y − ŷ|", showlegend=False)
+        fig.update_yaxes(autorange="reversed", showline=False, ticks="")
+        return fig
+
+    @staticmethod
     def class_metrics(labels: Sequence[str], precision: Sequence[float], recall: Sequence[float],
                       f1: Sequence[float], support: Sequence[int]) -> go.Figure:
         """Grouped bars of precision / recall / F1 for each class."""

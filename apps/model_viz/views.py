@@ -54,6 +54,7 @@ def index_view(request: HttpRequest) -> HttpResponse:
         "model_warning": warning,
         "diagnostics": None,
         "error": None,
+        "compare_count": services.comparison_candidates(dataset, prepared) if prepared else 0,
     }
     if model is not None and prepared is not None:
         try:
@@ -95,6 +96,22 @@ def boundary_view(request: HttpRequest) -> HttpResponse:
 @require_GET
 def permutation_view(request: HttpRequest) -> HttpResponse:
     return _lazy(request, lambda prepared, model: services.permutation_chart(_require_model(model), prepared))
+
+
+@require_GET
+def compare_view(request: HttpRequest) -> HttpResponse:
+    """Every leaderboard model on the same charts (ROC / PR, or error distributions)."""
+    dataset, prepared, _model, _warning = _context(request)
+    if prepared is None:
+        return render(request, "eda/_error.html", {"error": "Aucun prétraitement disponible."})
+    try:
+        charts = services.comparison_charts(dataset, prepared)
+    except DiagnosticsError as exc:
+        return render(request, "eda/_error.html", {"error": str(exc)})
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Model comparison failed")
+        return render(request, "eda/_error.html", {"error": f"Comparaison impossible : {exc}"})
+    return render(request, "model_viz/_charts.html", {"charts": charts})
 
 
 @require_GET

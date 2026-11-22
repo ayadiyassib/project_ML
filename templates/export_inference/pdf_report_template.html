@@ -54,6 +54,23 @@
             color: #718096;
         }
 
+        .diag-figure {
+            margin: 6px 0 14px 0;
+        }
+
+        .diag-title {
+            -pdf-keep-with-next: true;
+            margin: 0 0 4px 0;
+            font-size: 9.5pt;
+            color: #1a202c;
+        }
+
+        .diag-caption {
+            margin: 3px 0 0 0;
+            font-size: 8pt;
+            color: #718096;
+        }
+
         h2 {
             font-size: 12pt;
             color: #1a202c;
@@ -339,9 +356,21 @@
     </table>
     {% endif %}
 
-    <!-- 5. Leaderboard -->
+    <!-- 5. Diagnostic charts (diagnostics module) -->
+    {% if diagnostic_images %}
+    <h2>5. Visualisations Diagnostiques</h2>
+    {% for image in diagnostic_images %}
+    <div class="diag-figure">
+        <p class="diag-title"><strong>{{ image.title }}</strong></p>
+        <img src="{{ image.uri }}" width="{{ image.width }}" height="{{ image.height }}">
+        <p class="diag-caption">{{ image.caption }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- 6. Leaderboard -->
     {% if leaderboard %}
-    <h2>5. Classement Comparatif (Leaderboard)</h2>
+    <h2>{% if diagnostic_images %}6{% else %}5{% endif %}. Classement Comparatif (Leaderboard)</h2>
     <table>
         <thead>
             <tr>
@@ -376,8 +405,8 @@
     </table>
     {% endif %}
 
-    <!-- 6. Recommendations & Conclusion -->
-    <h2>6. Recommandations Techniques &amp; Déploiement</h2>
+    <!-- 7. Recommendations & Conclusion -->
+    <h2>{% if diagnostic_images %}7{% else %}6{% endif %}. Recommandations Techniques &amp; Déploiement</h2>
     <div class="box-highlight">
         <p style="margin: 0 0 6px 0;"><strong>Directives de Mise en Production :</strong></p>
         <ul style="margin: 0; padding-left: 16px; font-size: 8.5pt; color: #4a5568;">
