@@ -42,19 +42,27 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+> **Note Windows :** Si le port 8000 est bloqué par le pare-feu, utilisez un port alternatif :
+> ```powershell
+> python manage.py runserver 127.0.0.1:8001
+> ```
+> Si la connexion est toujours refusée, autorisez `python.exe` dans **Windows Defender Firewall → Autoriser une application**.
+
 ---
 
 ## 🌐 Liens d'Accès
 
-* **Studio ML (Application principale) :**  
-  👉 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-
-* **Centre Pédagogique & Fiches Mathématiques (Module 8) :**  
-  👉 [http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/)
-
-* **Panneau d'Administration Django :**  
-  👉 [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)  
-  *(Identifiants : `admin` / `123456`)*
+| Module | URL |
+| --- | --- |
+| **Dashboard principal** | [http://127.0.0.1:8000/](http://127.0.0.1:8000/) |
+| **Ingestion de données** | [http://127.0.0.1:8000/datasets/](http://127.0.0.1:8000/datasets/) |
+| **Analyse Exploratoire (EDA)** | [http://127.0.0.1:8000/eda/](http://127.0.0.1:8000/eda/) |
+| **Prétraitement** | [http://127.0.0.1:8000/preprocessing/](http://127.0.0.1:8000/preprocessing/) |
+| **Moteur ML — Entraînement & Évaluation** | [http://127.0.0.1:8000/ml_engine/](http://127.0.0.1:8000/ml_engine/) |
+| **Visualisations Diagnostiques** | [http://127.0.0.1:8000/model_viz/](http://127.0.0.1:8000/model_viz/) |
+| **Export & Inférence en direct** | [http://127.0.0.1:8000/export_inference/](http://127.0.0.1:8000/export_inference/) |
+| **Centre Pédagogique & KaTeX** | [http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/) |
+| **Panneau d'Administration Django** | [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) *(admin / 123456)* |
 
 ---
 
@@ -74,7 +82,7 @@ python manage.py runserver
 
 ## 🔌 Contrat de données (modules EDA, ML & Export)
 
-Les modules M3 (EDA) et M4 (ML / export) ne doivent **jamais relire le fichier source ni refaire le prétraitement** : ils consomment les artefacts produits par `apps/datasets` et `apps/preprocessing`.
+Les modules EDA et ML / Export ne doivent **jamais relire le fichier source ni refaire le prétraitement** : ils consomment les artefacts produits par `apps/datasets` et `apps/preprocessing`.
 
 ### 1. Dataset actif
 
@@ -126,10 +134,10 @@ y_train, y_test = prepared.y_train, prepared.y_test   # pandas Series (None en c
 ### 3. Entraînement et inférence
 
 ```python
-# M4 : entraînement
+# Entraînement supervisé
 model.fit(prepared.X_train, prepared.y_train)
 
-# M4 : inférence sur une ligne utilisateur (catégories inconnues gérées)
+# Inférence sur une ligne utilisateur (catégories inconnues gérées)
 row = pandas.DataFrame([{"Pclass": 3, "Sex": "female", "Age": 28.0, "Fare": 9.5}])
 X = pipeline.transform(row)   # même nombre de colonnes que prepared.n_features_out
 ```
@@ -139,66 +147,3 @@ X = pipeline.transform(row)   # même nombre de colonnes que prepared.n_features
 * `POST /preprocessing/apply/` recalcule et écrase les artefacts, puis met `preprocessing_done=True` et réinitialise l'état du modèle (`model_trained=False`).
 * `POST /preprocessing/reset/` supprime tout `media/projects/<dataset_id>/` (prétraitement **et** modèles entraînés).
 * Supprimer un `Dataset` supprime automatiquement son fichier et son dossier d'artefacts (signaux `post_delete`).
-
----
-
-## 📊 Exploration (EDA) & Diagnostics des modèles (`apps/eda/`, `apps/model_viz/`)
-
-Tous les graphiques sont construits en Python avec Plotly, sérialisés en JSON (`plotly.io.to_json`) puis rendus côté navigateur par `Plotly.newPlot` (`static/js/ml_charts.js`) : aucune image générée côté serveur, zoom / survol / masquage de séries natifs.
-
-### Étape 2 — Analyse exploratoire (`/eda/`)
-
-| Onglet | Contenu |
-| --- | --- |
-| **Vue d'ensemble** | Cartes métriques, constats automatiques (valeurs manquantes, asymétrie, outliers, colinéarité, déséquilibre des classes, doublons), équilibre de la cible, valeurs manquantes par colonne, tableau `describe()` complet (moyenne, médiane, écart-type, variance, min/max, Q1/Q3, IQR, skewness, kurtosis, uniques, cardinalité, outliers) et tableau des variables catégorielles. |
-| **Distributions** | Numérique : histogramme + KDE, boîte à moustaches, violon, violon par classe de la cible, test de normalité de D'Agostino. Catégorielle : fréquences absolues / relatives et donut. |
-| **Corrélations** | Heatmap Pearson ou Spearman, échelle divergente centrée sur 0, triangle supérieur masquable, paires les plus liées. |
-| **Nuages de points** | Scatter 2D (X, Y, couleur, droite MCO), vue 3D rotative, matrice de dispersion (pair plot). |
-
-L'EDA travaille sur le jeu brut (`load_dataframe`) : rien n'est réinjecté dans un modèle, donc aucune fuite de données. Les identifiants (`PassengerId`, `CustomerID`…) sont exclus des corrélations et des nuages de points.
-
-### Étape 5 — Diagnostics (`/diagnostics/`)
-
-| Tâche | Graphiques |
-| --- | --- |
-| **Régression** | Courbe d'ajustement avec IC 95 % (régression simple / polynomiale à 1 variable), prédit vs réel avec y = x, résidus vs prédits (±1,96σ), histogramme des résidus + loi normale, Q-Q plot. |
-| **Classification** | Matrice de confusion (effectifs + % par classe réelle), courbes ROC et Précision-Rappel (binaire ou un-contre-tous + micro-moyenne), précision / rappel / F1 par classe, frontière de décision sur projection PCA 2D. |
-| **Clustering** | Méthode du coude (WCSS) + silhouette moyenne pour k = 2…10 (disponible avant même l'entraînement), silhouette par observation, clusters et centroïdes sur PCA 2D. |
-| **Interprétabilité** | Importance de Gini (arbres, forêts), coefficients (modèles linéaires), importance par permutation (SVM, KNN, Naïf Bayes, MLP), courbe de perte du MLP. |
-
-### Contrat avec le moteur ML
-
-Le module lit le dernier modèle enregistré par `apps.ml_engine.services` :
-
-```text
-media/projects/<dataset_id>/models/latest_model.joblib   # estimateur scikit-learn ajusté
-media/projects/<dataset_id>/models/latest_result.json    # TrainingResult.to_dict()
-```
-
-* Les prédictions sont recalculées sur `prepared.X_test` avec le modèle sauvegardé : les graphiques décrivent exactement le modèle entraîné.
-* Un modèle plus ancien que `prepared.joblib` (prétraitement relancé), ou dont le nombre de variables ne correspond plus, est signalé et ignoré.
-* Les seuls ajustements faits ici servent la visualisation : K-Means pour k = 2…10 (coude) et un clone du modèle sur 2 composantes PCA (frontière de décision, signalé comme approximation).
-
-Réutiliser un graphique ailleurs (rapport, autre page) :
-
-```python
-from apps.eda.theme import make_chart
-from apps.model_viz.diagnostic_plots import ModelDiagnosticPlots
-
-chart = make_chart(ModelDiagnosticPlots.confusion_matrix(cm, labels), "cm", "Matrice de confusion")
-# template : {% include 'components/plotly_chart.html' with chart=chart %}
-#            + <script src="{% static 'js/ml_charts.js' %}"></script>
-```
-
-### Conventions visuelles
-
-* Thème sombre « Omakase » commun (`apps/eda/theme.py`) : fond transparent, encre papier de riz, grille discrète, police Noto Sans JP.
-* Couleurs catégorielles dans un ordre fixe, validé pour les daltonismes sur la surface `#1b1918`. La classe *i* garde toujours la même couleur et le même symbole de marqueur.
-* Échelle séquentielle bleue pour les magnitudes, divergente bleu ↔ rouge pour les corrélations, aucun graphique à double axe Y.
-* Les nuages de points sont échantillonnés (3 000 points en 2D, 2 000 en 3D, 1 200 pour le pair plot) ; les statistiques, elles, utilisent toujours toutes les lignes.
-
-### Tests
-
-```bash
-python manage.py test apps.eda apps.model_viz
-```
