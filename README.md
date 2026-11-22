@@ -42,19 +42,27 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+> **Note Windows :** Si le port 8000 est bloqué par le pare-feu, utilisez un port alternatif :
+> ```powershell
+> python manage.py runserver 127.0.0.1:8001
+> ```
+> Si la connexion est toujours refusée, autorisez `python.exe` dans **Windows Defender Firewall → Autoriser une application**.
+
 ---
 
 ## 🌐 Liens d'Accès
 
-* **Studio ML (Application principale) :**  
-  👉 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
-
-* **Centre Pédagogique & Fiches Mathématiques (Module 8) :**  
-  👉 [http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/)
-
-* **Panneau d'Administration Django :**  
-  👉 [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)  
-  *(Identifiants : `admin` / `123456`)*
+| Module | URL |
+| --- | --- |
+| **Dashboard principal** | [http://127.0.0.1:8000/](http://127.0.0.1:8000/) |
+| **Ingestion de données** | [http://127.0.0.1:8000/datasets/](http://127.0.0.1:8000/datasets/) |
+| **Analyse Exploratoire (EDA)** | [http://127.0.0.1:8000/eda/](http://127.0.0.1:8000/eda/) |
+| **Prétraitement** | [http://127.0.0.1:8000/preprocessing/](http://127.0.0.1:8000/preprocessing/) |
+| **Moteur ML — Entraînement & Évaluation** | [http://127.0.0.1:8000/models/](http://127.0.0.1:8000/models/) |
+| **Visualisations Diagnostiques** | [http://127.0.0.1:8000/diagnostics/](http://127.0.0.1:8000/diagnostics/) |
+| **Export & Inférence en direct** | [http://127.0.0.1:8000/export/](http://127.0.0.1:8000/export/) |
+| **Centre Pédagogique & KaTeX** | [http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/) |
+| **Panneau d'Administration Django** | [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) *(admin / 123456)* |
 
 ---
 
@@ -74,7 +82,7 @@ python manage.py runserver
 
 ## 🔌 Contrat de données (modules EDA, ML & Export)
 
-Les modules M3 (EDA) et M4 (ML / export) ne doivent **jamais relire le fichier source ni refaire le prétraitement** : ils consomment les artefacts produits par `apps/datasets` et `apps/preprocessing`.
+Les modules EDA et ML / Export ne doivent **jamais relire le fichier source ni refaire le prétraitement** : ils consomment les artefacts produits par `apps/datasets` et `apps/preprocessing`.
 
 ### 1. Dataset actif
 
@@ -126,10 +134,10 @@ y_train, y_test = prepared.y_train, prepared.y_test   # pandas Series (None en c
 ### 3. Entraînement et inférence
 
 ```python
-# M4 : entraînement
+# Entraînement supervisé
 model.fit(prepared.X_train, prepared.y_train)
 
-# M4 : inférence sur une ligne utilisateur (catégories inconnues gérées)
+# Inférence sur une ligne utilisateur (catégories inconnues gérées)
 row = pandas.DataFrame([{"Pclass": 3, "Sex": "female", "Age": 28.0, "Fare": 9.5}])
 X = pipeline.transform(row)   # même nombre de colonnes que prepared.n_features_out
 ```
@@ -139,6 +147,70 @@ X = pipeline.transform(row)   # même nombre de colonnes que prepared.n_features
 * `POST /preprocessing/apply/` recalcule et écrase les artefacts, puis met `preprocessing_done=True` et réinitialise l'état du modèle (`model_trained=False`).
 * `POST /preprocessing/reset/` supprime tout `media/projects/<dataset_id>/` (prétraitement **et** modèles entraînés).
 * Supprimer un `Dataset` supprime automatiquement son fichier et son dossier d'artefacts (signaux `post_delete`).
+
+---
+
+## 🤖 Moteur Machine Learning (`apps/ml_engine/`)
+
+Le moteur ML expose **11 algorithmes** couvrant l'ensemble des tâches supervisées et non supervisées, tous paramétrables depuis l'interface web sans écrire une ligne de code.
+
+### Algorithmes disponibles
+
+| Famille | Algorithme | Tâche |
+| --- | --- | --- |
+| **Régression** | Régression Linéaire Simple & Multiple | Régression |
+| | Régression Polynomiale (degré 2–5) | Régression |
+| | Régression Logistique (L1 / L2) | Classification |
+| **Arbres** | Arbre de Décision (Classifier & Regressor) | Classification / Régression |
+| | Forêt Aléatoire — Random Forest | Classification / Régression |
+| **Géométrique / Probabiliste** | Support Vector Machine — SVM / SVR | Classification / Régression |
+| | Naïf Bayésien — GaussianNB & MultinomialNB | Classification |
+| | K Plus Proches Voisins — KNN | Classification / Régression |
+| **Non supervisé** | K-Means Clustering | Clustering |
+| **Réseaux de neurones** | Perceptron Multi-Couches — MLP | Classification / Régression |
+
+### Validation & Métriques
+
+* **Validation croisée** : `StratifiedKFold` (classification) et `KFold` (régression), K ∈ [3, 10].
+* **Classification** : Accuracy, Précision, Rappel, F1-Score (macro / weighted), ROC-AUC.
+* **Régression** : MAE, MSE, RMSE, R², R² ajusté.
+* **Clustering** : Score de Silhouette, Indice de Davies-Bouldin, Inertie WCSS.
+* **Leaderboard** : tableau comparatif multi-modèles avec badge « Best Model » automatique.
+
+---
+
+## 📦 Export & Inférence (`apps/export_inference/`)
+
+Une fois un modèle entraîné, le module Export & Inférence permet de valoriser et déployer le résultat.
+
+### Fonctionnalités
+
+| Fonctionnalité | Description |
+| --- | --- |
+| **Export `.joblib`** | Téléchargement du pipeline complet (préprocesseur + modèle) en un clic. |
+| **Export Prédictions CSV** | Fichier CSV contenant features, valeur réelle, valeur prédite et résidu / probabilité. |
+| **Rapport PDF** | Rapport d'analyse automatisé (xhtml2pdf) : résumé dataset, prétraitements, hyperparamètres, métriques Train / Test / CV et recommandations. |
+| **Inference Playground** | Formulaire web dynamique généré à partir des features du dataset. Retourne instantanément la prédiction et la probabilité de confiance associée. |
+
+### Rechargement du modèle exporté
+
+```python
+import joblib, pandas as pd
+
+pipeline = joblib.load("model_export.joblib")
+new_data = pd.DataFrame([{"feature_1": 5.1, "feature_2": "value", ...}])
+predictions = pipeline.predict(new_data)
+```
+
+### URLs du module
+
+| Action | URL |
+| --- | --- |
+| Page principale Export & Inférence | `GET  /export/` |
+| Télécharger le modèle `.joblib` | `GET  /export/download/model/` |
+| Télécharger les prédictions `.csv` | `GET  /export/download/predictions/` |
+| Télécharger le rapport PDF | `GET  /export/download/pdf/` |
+| Prédiction en direct (HTMX / JSON) | `POST /export/predict/` |
 
 ---
 
