@@ -1,0 +1,4 @@
+{# HTMX partial: several charts swapped into a grid (model comparison). #}
+{% for chart in charts %}
+{% include 'components/plotly_chart.html' with chart=chart %}
+{% endfor %}

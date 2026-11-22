@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Rapport d'Audit ML Studio</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.5cm;
+            @bottom-right {
+                content: "Page " counter(page) " / " counter(pages);
+                font-size: 8pt;
+                color: #718096;
+            }
+            @bottom-left {
+                content: "ML Studio — Rapport d'Expérimentation AutoML";
+                font-size: 8pt;
+                color: #718096;
+            }
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #2d3748;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+
+        .header {
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 10pt;
+            color: #4f46e5;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .meta-bar {
+            margin-top: 8px;
+            font-size: 8.5pt;
+            color: #718096;
+        }
+
+        .diag-figure {
+            margin: 6px 0 14px 0;
+        }
+
+        .diag-title {
+            -pdf-keep-with-next: true;
+            margin: 0 0 4px 0;
+            font-size: 9.5pt;
+            color: #1a202c;
+        }
+
+        .diag-caption {
+            margin: 3px 0 0 0;
+            font-size: 8pt;
+            color: #718096;
+        }
+
+        h2 {
+            font-size: 12pt;
+            color: #1a202c;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+            margin-top: 18px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        h3 {
+            font-size: 10.5pt;
+            color: #4a5568;
+            margin-top: 12px;
+            margin-bottom: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 9pt;
+        }
+
+        th {
+            background-color: #f7fafc;
+            color: #4a5568;
+            text-align: left;
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #fcfdfe;
+        }
+
+        .badge-champion {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+
+        .box-highlight {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #4f46e5;
+            padding: 10px 14px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+        }
+
+        .box-success {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-left: 4px solid #10b981;
+            padding: 10px 14px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+        }
+
+        .score-big {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+
+        .text-muted {
+            color: #718096;
+            font-size: 8.5pt;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="subtitle">Plateforme Polyvalente Machine Learning</div>
+        <div class="title">Rapport d'Audit &amp; Synthèse de Modélisation</div>
+        <div class="meta-bar">
+            Généré le {{ generated_at }} &bull; Dataset : <strong>{{ dataset.name }}</strong> &bull; Tâche : <strong>{{ prepared.task_type|upper }}</strong>
+        </div>
+    </div>
+
+    <!-- Executive Summary Card -->
+    {% if champion %}
+    <div class="box-success">
+        <table style="border: none; margin: 0;">
+            <tr style="background: none;">
+                <td style="border: none; width: 70%; padding: 0;">
+                    <div style="font-size: 8.5pt; color: #065f46; font-weight: bold; text-transform: uppercase;">Modèle Recommandé (Champion)</div>
+                    <div style="font-size: 14pt; font-weight: bold; color: #047857; margin-top: 2px;">
+                        {{ champion.algo_name }}
+                    </div>
+                    <div style="font-size: 8.5pt; color: #4b5563; margin-top: 2px;">
+                        Entraîné en {{ champion.training_time_ms }} ms &bull; Validation Croisée : <strong>{{ champion.cv_mean|default:"N/A" }} &plusmn; {{ champion.cv_std|default:"N/A" }}</strong>
+                    </div>
+                </td>
+                <td style="border: none; width: 30%; text-align: right; padding: 0;">
+                    <div style="font-size: 8.5pt; color: #065f46; font-weight: bold;">Score Test Principal</div>
+                    <div class="score-big" style="color: #047857;">{{ champion.summary_score }}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- 1. Dataset Specs -->
+    <h2>1. Fiche Descriptive du Jeu de Données</h2>
+    <table>
+        <tr>
+            <th style="width: 25%;">Nom du Dataset</th>
+            <td style="width: 25%;">{{ dataset.name }}</td>
+            <th style="width: 25%;">Type de Tâche</th>
+            <td style="width: 25%;">{{ prepared.task_type|title }}</td>
+        </tr>
+        <tr>
+            <th>Volume Total</th>
+            <td>{{ dataset.n_rows }} lignes &times; {{ dataset.n_cols }} colonnes</td>
+            <th>Variable Cible (Target)</th>
+            <td><strong>{{ prepared.target|default:"Aucune (Clustering)" }}</strong></td>
+        </tr>
+        <tr>
+            <th>Échantillons Train / Test</th>
+            <td>{{ prepared.train_rows }} train / {{ prepared.test_rows }} test</td>
+            <th>Variables Actives</th>
+            <td>{{ prepared.n_features_out }} descripteurs transformés</td>
+        </tr>
+    </table>
+
+    <!-- 2. Preprocessing Audit -->
+    <h2>2. Audit du Pipeline de Prétraitement (Leak-Free)</h2>
+    <table>
+        <tr>
+            <th style="width: 30%;">Stratégie Numérique</th>
+            <td>Imputation par <strong>{{ prep_config.numeric_strategy|default:"Moyenne" }}</strong></td>
+        </tr>
+        <tr>
+            <th>Stratégie Catégorielle</th>
+            <td>Imputation par <strong>{{ prep_config.categorical_strategy|default:"Mode" }}</strong></td>
+        </tr>
+        <tr>
+            <th>Encodage Catégoriel</th>
+            <td><strong>{{ prep_config.encoder|default:"One-Hot Encoding"|title }}</strong></td>
+        </tr>
+        <tr>
+            <th>Normalisation / Scaling</th>
+            <td><strong>{{ prep_config.scaler|default:"StandardScaler"|title }}</strong></td>
+        </tr>
+        <tr>
+            <th>Filtre Outliers (IQR)</th>
+            <td><strong>{{ prep_config.outlier_method|default:"Aucun" }}</strong> (facteur {{ prep_config.outlier_factor|default:"1.5" }})</td>
+        </tr>
+    </table>
+
+    <!-- 3. Champion Model Configuration -->
+    {% if latest_result %}
+    <h2>3. Configuration &amp; Hyperparamètres du Modèle</h2>
+    <div class="box-highlight">
+        <strong>Algorithme sélectionné :</strong> {{ latest_result.algo_name }} ({{ latest_result.algo_key }})<br>
+        <strong>Temps d'exécution :</strong> {{ latest_result.training_time_ms }} ms &bull;
+        <strong>Validation croisée :</strong> {{ latest_result.cv_scores|length }} plis (K-Fold)
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40%;">Hyperparamètre</th>
+                <th style="width: 60%;">Valeur Configurée</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for param_name, param_val in latest_result.params.items %}
+            <tr>
+                <td><strong>{{ param_name }}</strong></td>
+                <td>{{ param_val }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" class="text-muted">Paramètres par défaut Scikit-Learn appliqués.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- 4. Performance Metrics -->
+    <h2>4. Évaluation Complète des Performances</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Métrique d'Évaluation</th>
+                <th>Score Jeu d'Entraînement</th>
+                <th>Score Jeu de Test</th>
+                <th>Interprétation</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if latest_result.task_type == 'classification' %}
+            <tr>
+                <td><strong>Exactitude (Accuracy)</strong></td>
+                <td>{{ latest_result.train_metrics.accuracy_pct }}%</td>
+                <td><strong>{{ latest_result.test_metrics.accuracy_pct }}%</strong></td>
+                <td class="text-muted">Part des prédictions parfaitement exactes</td>
+            </tr>
+            <tr>
+                <td><strong>F1-Score (Pondéré)</strong></td>
+                <td>{{ latest_result.train_metrics.f1 }}</td>
+                <td><strong>{{ latest_result.test_metrics.f1 }}</strong></td>
+                <td class="text-muted">Moyenne harmonique précision / rappel</td>
+            </tr>
+            <tr>
+                <td><strong>Précision Moyenne</strong></td>
+                <td>{{ latest_result.train_metrics.precision }}</td>
+                <td>{{ latest_result.test_metrics.precision }}</td>
+                <td class="text-muted">Fiabilité des prédictions positives</td>
+            </tr>
+            <tr>
+                <td><strong>Rappel Moyen (Recall)</strong></td>
+                <td>{{ latest_result.train_metrics.recall }}</td>
+                <td>{{ latest_result.test_metrics.recall }}</td>
+                <td class="text-muted">Capacité à détecter tous les positifs</td>
+            </tr>
+            {% if latest_result.test_metrics.roc_auc %}
+            <tr>
+                <td><strong>ROC-AUC Score</strong></td>
+                <td>—</td>
+                <td><strong>{{ latest_result.test_metrics.roc_auc }}</strong></td>
+                <td class="text-muted">Aire sous la courbe ROC (discrimination)</td>
+            </tr>
+            {% endif %}
+
+            {% elif latest_result.task_type == 'regression' %}
+            <tr>
+                <td><strong>Coefficient R²</strong></td>
+                <td>{{ latest_result.train_metrics.r2 }}</td>
+                <td><strong>{{ latest_result.test_metrics.r2 }}</strong></td>
+                <td class="text-muted">Variance expliquée par le modèle</td>
+            </tr>
+            <tr>
+                <td><strong>R² Ajusté</strong></td>
+                <td>{{ latest_result.train_metrics.r2_adjusted }}</td>
+                <td>{{ latest_result.test_metrics.r2_adjusted }}</td>
+                <td class="text-muted">R² corrigé pour le nombre de variables</td>
+            </tr>
+            <tr>
+                <td><strong>RMSE (Racine MSE)</strong></td>
+                <td>{{ latest_result.train_metrics.rmse }}</td>
+                <td><strong>{{ latest_result.test_metrics.rmse }}</strong></td>
+                <td class="text-muted">Erreur type moyenne dans l'unité cible</td>
+            </tr>
+            <tr>
+                <td><strong>MAE (Erreur Absolue)</strong></td>
+                <td>{{ latest_result.train_metrics.mae }}</td>
+                <td>{{ latest_result.test_metrics.mae }}</td>
+                <td class="text-muted">Écart absolu moyen des prédictions</td>
+            </tr>
+
+            {% elif latest_result.task_type == 'clustering' %}
+            <tr>
+                <td><strong>Score de Silhouette</strong></td>
+                <td colspan="2"><strong>{{ latest_result.test_metrics.silhouette }}</strong></td>
+                <td class="text-muted">Qualité de partitionnement [-1 à 1]</td>
+            </tr>
+            <tr>
+                <td><strong>Indice Davies-Bouldin</strong></td>
+                <td colspan="2">{{ latest_result.test_metrics.davies_bouldin }}</td>
+                <td class="text-muted">Plus faible = meilleure séparation</td>
+            </tr>
+            <tr>
+                <td><strong>Inertie Totale (WCSS)</strong></td>
+                <td colspan="2">{{ latest_result.test_metrics.inertia }}</td>
+                <td class="text-muted">Somme des carrés intra-cluster</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- 5. Diagnostic charts (diagnostics module) -->
+    {% if diagnostic_images %}
+    <h2>5. Visualisations Diagnostiques</h2>
+    {% for image in diagnostic_images %}
+    <div class="diag-figure">
+        <p class="diag-title"><strong>{{ image.title }}</strong></p>
+        <img src="{{ image.uri }}" width="{{ image.width }}" height="{{ image.height }}">
+        <p class="diag-caption">{{ image.caption }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- 6. Leaderboard -->
+    {% if leaderboard %}
+    <h2>{% if diagnostic_images %}6{% else %}5{% endif %}. Classement Comparatif (Leaderboard)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%;">Rang</th>
+                <th style="width: 35%;">Algorithme</th>
+                <th style="width: 15%;">Score Test</th>
+                <th style="width: 25%;">Validation Croisée</th>
+                <th style="width: 15%;">Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in leaderboard %}
+            <tr>
+                <td>#{{ forloop.counter }}</td>
+                <td><strong>{{ row.algo_name }}</strong></td>
+                <td><strong>{{ row.summary_score }}</strong></td>
+                <td>
+                    {% if row.cv_mean is not None %}
+                    {{ row.cv_mean }} &plusmn; {{ row.cv_std }}
+                    {% else %}—{% endif %}
+                </td>
+                <td>
+                    {% if row.is_best %}
+                    <span class="badge-champion">Champion</span>
+                    {% else %}
+                    <span class="text-muted">Candidat</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- 7. Recommendations & Conclusion -->
+    <h2>{% if diagnostic_images %}7{% else %}6{% endif %}. Recommandations Techniques &amp; Déploiement</h2>
+    <div class="box-highlight">
+        <p style="margin: 0 0 6px 0;"><strong>Directives de Mise en Production :</strong></p>
+        <ul style="margin: 0; padding-left: 16px; font-size: 8.5pt; color: #4a5568;">
+            <li>Le pipeline exporté (<code>.joblib</code>) intègre la chaîne complète de transformation et ne nécessite aucun prétraitement manuel en amont.</li>
+            <li>En cas de dérive des données (<em>Data Drift</em>), réentraîner le modèle périodiquement sur les nouvelles observations collectées.</li>
+            <li>Vérifier la distribution des valeurs aberrantes avant d'exécuter des inférences à grande échelle.</li>
+        </ul>
+    </div>
+
+</body>
+</html>

@@ -214,6 +214,24 @@ class ClusteringDiagnosticsTests(SimpleTestCase):
         self.assertIn("coude suggéré : k = 3", chart.subtitle)
 
 
+class RegressionComparisonTests(SimpleTestCase):
+    def test_models_are_ranked_by_median_error_and_keep_their_colour(self) -> None:
+        frame = regression_frame()
+        frame["noise"] = np.random.default_rng(3).normal(size=len(frame))
+        prepared = prepared_from(frame, "y", "regression")
+        good = LinearRegression().fit(prepared.X_train, prepared.y_train)
+        bad = SingleFeature(feature_idx=1).fit(prepared.X_train, prepared.y_train)  # uses the noise column
+        order = services.COMPARISON_ORDER["regression"]
+        models = [
+            (order.index("simple_linear_regression"), services.TrainedModel(bad, "Simple", "", "regression")),
+            (order.index("multiple_linear_regression"), services.TrainedModel(good, "Multiple", "", "regression")),
+        ]
+        rows = services.regression_errors(models, prepared)
+        self.assertEqual([row["name"] for row in rows], ["Multiple", "Simple"])
+        self.assertEqual(rows[0]["color"], services.series_color(order.index("multiple_linear_regression")))
+        self.assertGreater(rows[0]["r2"], rows[1]["r2"])
+
+
 class FigureTests(SimpleTestCase):
     def test_confusion_annotations_show_counts_and_row_percentages(self) -> None:
         fig = Plots.confusion_matrix(np.array([[8, 2], [1, 9]]), ["a", "b"])
@@ -321,6 +339,68 @@ class ModelVizIntegrationTests(TestCase):
         self.save_model(dataset, model)
         response = self.client.get(reverse("model_viz:index"))
         self.assertContains(response, "Le modèle attend 2 variables")
+
+    # -- model comparison (leaderboard) and PDF figures ----------------------
+    def train(self, *algos: str) -> None:
+        for algo in algos:
+            self.client.post(reverse("ml_engine:train"), {"algo_key": algo, "cv_folds": "3"})
+
+    def test_training_keeps_one_model_per_algorithm(self) -> None:
+        dataset = self.preprocess_iris()
+        self.train("logistic_regression", "decision_tree")
+        from apps.ml_engine.services import algo_model_path
+
+        self.assertTrue(algo_model_path(dataset, "logistic_regression").exists())
+        self.assertTrue(algo_model_path(dataset, "decision_tree").exists())
+        prepared = load_prepared(dataset)
+        self.assertEqual(services.comparison_candidates(dataset, prepared), 2)
+
+    def test_comparison_overlays_every_trained_algorithm(self) -> None:
+        self.preprocess_iris()
+        self.train("logistic_regression", "decision_tree", "knn")
+        page = self.client.get(reverse("model_viz:index"))
+        self.assertContains(page, "Comparaison des modèles entraînés")
+        self.assertContains(page, reverse("model_viz:compare"))
+        response = self.client.get(reverse("model_viz:compare"))
+        self.assertContains(response, "Comparaison des courbes ROC")
+        self.assertContains(response, "Comparaison des courbes Précision-Rappel")
+
+    def test_comparison_needs_two_models(self) -> None:
+        self.preprocess_iris()
+        self.train("logistic_regression")
+        self.assertNotContains(self.client.get(reverse("model_viz:index")), reverse("model_viz:compare"))
+        self.assertContains(self.client.get(reverse("model_viz:compare")), "au moins deux algorithmes")
+
+    def test_comparison_ignores_models_older_than_preprocessing(self) -> None:
+        dataset = self.preprocess_iris()
+        self.train("logistic_regression", "decision_tree")
+        from apps.ml_engine.services import algo_model_path
+
+        old = time.time() - 60
+        for key in ("logistic_regression", "decision_tree"):
+            os.utime(algo_model_path(dataset, key), (old, old))
+        save_prepared(dataset, load_prepared(dataset))
+        self.assertEqual(services.comparison_candidates(dataset, load_prepared(dataset)), 0)
+
+    def test_pdf_report_embeds_diagnostic_figures(self) -> None:
+        dataset = self.preprocess_iris()
+        self.train("logistic_regression", "decision_tree")
+        from apps.export_inference.pdf_generator import generate_pdf_report_bytes
+        from apps.model_viz.report_charts import report_images
+
+        titles = [image["title"] for image in report_images(dataset)]
+        self.assertEqual(titles, ["Matrice de confusion", "Courbe ROC", "Importance des variables",
+                                  "Comparaison des modèles — courbes ROC"])
+        self.assertTrue(all(image["uri"].startswith("data:image/png;base64,") for image in report_images(dataset)))
+        pdf = generate_pdf_report_bytes(dataset)
+        self.assertTrue(pdf.startswith(b"%PDF"))
+        self.assertGreaterEqual(pdf.count(b"/Subtype /Image"), 4)
+
+    def test_report_images_without_model_is_empty(self) -> None:
+        dataset = self.preprocess_iris()
+        from apps.model_viz.report_charts import report_images
+
+        self.assertEqual(report_images(dataset), [])
 
     def test_lazy_endpoints_without_model(self) -> None:
         self.preprocess_iris()
