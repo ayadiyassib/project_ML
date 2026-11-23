@@ -363,7 +363,7 @@
                         <div class="flex items-center gap-2">
                             <span class="w-16 truncate font-mono text-[10px] text-slate-400">{{ item.label }}</span>
                             <div class="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                                <div class="h-full rounded-full bg-indigo-500" style="width: {{ item.pct }}%"></div>
+                                <div class="h-full rounded-full bg-indigo-500" style="--w: {{ item.pct }}%; width: var(--w);"></div>
                             </div>
                             <span class="w-14 text-right font-mono text-[10px] text-slate-400">{{ item.count }} <span class="text-slate-600">({{ item.pct }}%)</span></span>
                         </div>

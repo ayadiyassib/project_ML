@@ -201,7 +201,7 @@
                                     <div class="flex items-center gap-2">
                                         <div class="h-1.5 w-20 rounded-full bg-slate-800 overflow-hidden">
                                             <div class="h-full rounded-full {% if column.missing_pct == 0 %}bg-emerald-500{% elif column.missing_pct < 20 %}bg-emerald-500/60{% elif column.missing_pct < 50 %}bg-amber-500{% else %}bg-rose-500{% endif %}"
-                                                 style="width: calc(100% - {{ column.missing_pct }}%);"></div>
+                                                 style="--pct: {{ column.missing_pct }}%; width: calc(100% - var(--pct));"></div>
                                         </div>
                                         <span class="text-[10px] font-mono {% if column.missing_pct == 0 %}text-slate-500{% else %}text-amber-400{% endif %}">
                                             {% if column.missing_pct == 0 %}complet{% else %}-{{ column.missing_pct }}%{% endif %}
@@ -232,7 +232,7 @@
                     </div>
                     <div class="h-2 rounded-full bg-slate-800 overflow-hidden">
                         <div class="h-full rounded-full {% if profile.completeness >= 95 %}bg-emerald-500{% elif profile.completeness >= 80 %}bg-amber-500{% else %}bg-rose-500{% endif %}"
-                             style="width: {{ profile.completeness }}%"></div>
+                             style="--w: {{ profile.completeness }}%; width: var(--w);"></div>
                     </div>
 
                     <dl class="mt-4 space-y-2 text-[11px]">

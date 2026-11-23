@@ -45,7 +45,7 @@
                 </div>
                 <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                     <div class="{% if pct == prediction_result.confidence %}bg-emerald-500{% else %}bg-indigo-500/60{% endif %} h-2 rounded-full transition-all duration-500"
-                         style="width: {{ pct }}%;"></div>
+                         style="--w: {{ pct }}%; width: var(--w);"></div>
                 </div>
             </div>
             {% endfor %}
