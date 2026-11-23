@@ -69,7 +69,8 @@ classDiagram
 | **Leaderboard Modèles**| `GET /models/` | ❌ Redir login | ✅ Ses modèles sauvegardés | ✅ Ses modèles ou tous les modèles |
 | **Export Joblib / PDF**| `GET /export/<id>/download/`| ❌ Redir login | ✅ Si propriétaire du modèle | ✅ Tout modèle |
 | **Inférence Live** | `POST /export/predict/` | ❌ Redir login | ✅ Modèle actif | ✅ Modèle actif |
-| **Panneau Admin** | `GET/POST /admin/` | ❌ Redir login | ⛔ Erreur 403 Forbidden | ✅ Accès total Django Admin |
+| **Gestion Utilisateurs (SaaS)** | `GET/POST /administration/users/` | ❌ Redir login | ⛔ Erreur 403 Forbidden | ✅ Gestion complète (rôles, statut, suppression) |
+| **Panneau Admin Django** | `GET/POST /admin/` | ❌ Redir login | ⛔ Erreur 403 Forbidden | ✅ Accès total Django Admin |
 
 ---
 

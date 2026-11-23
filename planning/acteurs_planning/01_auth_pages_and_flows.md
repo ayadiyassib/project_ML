@@ -172,12 +172,53 @@ sequenceDiagram
 
 ---
 
+### 2.6 Page de Gestion des Utilisateurs (SaaS Admin) — `/administration/users/`
+
+* **Template :** `templates/accounts/admin/user_management.html` (intégré dans le layout principal `templates/base.html`).
+* **Protection :** Réservé exclusivement aux administrateurs (`@admin_required`).
+* **Accès Navigation :** Bouton permanent dans la **Sidebar (Section Administration)** et dans le menu déroulant profil de la **Topbar**.
+* **Composants & Fonctionnalités clés :**
+  1. **Barre de Recherche & Filtres Rapides (HTMX) :**
+     - Champ de recherche textuelle avec déclenchement automatique : `hx-get="{% url 'accounts:admin_users_table' %}" hx-trigger="keyup changed delay:300ms" hx-target="#users-table-body"`.
+     - Filtre par rôle : `Tous les rôles`, `Administrateurs`, `Membres standard`.
+     - Filtre par statut : `Actifs`, `Inactifs / Suspendus`.
+  2. **Tableau DataGrid des Utilisateurs (Style Linear) :**
+     - Colonnes : Utilisateur (Avatar couleur + Nom complet + Username), Email, Rôle (Badge Rose `Admin` ou Indigo `Membre`), Datasets créés, Modèles entraînés, Date d'inscription, Dernier login, Statut (Pastille verte `Actif` ou grise `Inactif`), Actions.
+  3. **Actions Rapides In-Situ (HTMX) :**
+     - **Toggle Rôle :** Promouvoir au rang d'Admin ou rétrograder en Membre en 1 clic avec feedback toast instantané.
+     - **Toggle Statut :** Activer/Désactiver le compte (`user.is_active = not user.is_active`) pour suspendre un utilisateur sans supprimer ses données.
+     - **Suppression d'utilisateur :** Déclenche une modale de confirmation Alpine.js avant suppression définitive en base.
+  4. **Tiroir Latéral (Drawer Alpine.js) "Nouvel Utilisateur" :**
+     - Permet à l'Admin de créer directement un compte (prénom, nom, email, mot de passe initial, rôle) sans passer par `/admin/`.
+
+#### Wireframe du Tableau de Gestion Utilisateurs :
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  👥 Gestion des Utilisateurs                                  [ + Nouvel Utilisateur ] │
+│  Supervisez les comptes enregistrés, leurs rôles et leurs quotas sur ML Studio         │
+│                                                                                        │
+│  [ 🔍 Rechercher un nom ou email... ]   [ Rôle: Tous ▼ ]  [ Statut: Actifs ▼ ]         │
+│ ┌────────────────────────────────────────────────────────────────────────────────────┐ │
+│ │ UTILISATEUR          │ EMAIL            │ RÔLE    │ PROJETS │ INSCRIPTION │ ACTIONS    │ │
+│ ├──────────────────────┼──────────────────┼─────────┼─────────┼─────────────┼────────────┤ │
+│ │ [YA] Yassine A.      │ yassine@ml.loc   │ [ADMIN] │ 12 DS   │ 15 Nov 2026 │ [••• Menu] │ │
+│ │      @yassine        │                  │         │ 8 Mod.  │             │            │ │
+│ │ [JD] John Doe        │ john@univ.fr     │ [MEMBRE]│ 3 DS    │ 18 Nov 2026 │ [••• Menu] │ │
+│ │      @johndoe        │                  │         │ 2 Mod.  │             │            │ │
+│ └────────────────────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 3. Matrice des Redirections & Statuts HTTP
 
 | Situation Utilisateur | Action Tentée | Résultat / Redirection |
 | :--- | :--- | :--- |
 | Visiteur Anonyme | Visite `/` (Racine) | Affichage de `landing.html` (Landing page) |
 | Visiteur Anonyme | Visite `/datasets/` ou `/models/` | 302 Redirection vers `/auth/login/?next=/datasets/` |
+| Visiteur Anonyme | Visite `/administration/users/` | 302 Redirection vers `/auth/login/?next=/administration/users/` |
+| Utilisateur Standard | Visite `/administration/users/` | 403 Forbidden (Accès réservé aux administrateurs) |
 | Utilisateur Connecté | Visite `/` ou `/auth/login/` | 302 Redirection vers `/dashboard/` |
 | Utilisateur Standard | Visite `/admin/` | 403 Forbidden (accès réservé aux administrateurs) |
 | Utilisateur Déconnecté | Soumission POST `/auth/logout/` | 302 Redirection vers `/` avec message Toast d'information |

@@ -96,6 +96,14 @@ gantt
   - `check_username` : Vérifie la disponibilité du nom d'utilisateur.
 - [ ] **2.5 Routage d'URLs (`apps/accounts/urls.py` et `ml_studio/urls.py`)**
   - Déclaration de `path('auth/', include('apps.accounts.urls', namespace='accounts'))`.
+  - Déclaration des routes d'administration : `path('administration/users/', views.admin_users_view, name='admin_users')`.
+- [ ] **2.6 Contrôleurs de Gestion des Utilisateurs Admin (`apps/accounts/views.py`)**
+  - `admin_users_view` : Page principale de listing avec pagination et métriques.
+  - `admin_users_table_partial` : Endpoint HTMX de filtrage/recherche temps réel.
+  - `toggle_user_role` : Endpoint HTMX pour promouvoir / rétrograder (Admin/Membre).
+  - `toggle_user_status` : Endpoint HTMX pour activer / désactiver un compte.
+  - `create_user_admin` : Endpoint HTMX pour créer un utilisateur depuis la modale.
+  - `delete_user_admin` : Endpoint de suppression sécurisée.
 
 ---
 
@@ -114,6 +122,10 @@ gantt
 - [ ] **3.5 Modale de déconnexion `templates/components/logout_modal.html`**
   - Événement personnalisé Alpine.js `$dispatch('open-logout-modal')`.
   - Soumission sécurisée en POST avec protection CSRF.
+- [ ] **3.6 Interface SaaS de Gestion des Utilisateurs (`templates/accounts/admin/`)**
+  - Page principale `user_management.html` avec recherche et filtres instantanés.
+  - Partiel `_users_table.html` pour la pagination et le rechargement asynchrone HTMX.
+  - Modale Alpine.js `_create_user_modal.html` pour la création directe d'utilisateurs.
 
 ---
 
@@ -121,11 +133,11 @@ gantt
 - [ ] **4.1 Context Processor Global (`apps/core/context_processors.py`)**
   - Injecte `user_initials`, `user_role_label`, et `is_admin` dans tous les templates DTL.
 - [ ] **4.2 Mise à jour de la barre latérale (`templates/components/sidebar.html`)**
-  - Ajout du widget utilisateur en bas de sidebar avec avatar circulaire coloré.
-  - Badge dynamique : `ADMIN` (Rose/Ume) ou `MEMBRE` (Indigo).
-  - Bouton déconnexion déclenchant la modale.
+  - **Section Administration dédiée** : Insérée entre "Pipeline Studio" et "Ressources", affichée uniquement si `request.user.is_staff`.
+  - **Option "Gestion Utilisateurs"** : Lien stylisé avec icône, badge `Admin` rose et état actif.
+  - Ajout du widget utilisateur en bas de sidebar avec avatar circulaire coloré et bouton logout.
 - [ ] **4.3 Mise à jour de l'en-tête supérieur (`templates/components/topbar.html`)**
-  - Dropdown utilisateur Alpine.js avec raccourci Profil, Django Admin (si staff) et Déconnexion.
+  - Dropdown utilisateur Alpine.js avec raccourcis Profil, "Gestion Utilisateurs" SaaS, Django Admin et Déconnexion.
 - [ ] **4.4 Inclusion de la modale de déconnexion dans `templates/base.html`**
 
 ---

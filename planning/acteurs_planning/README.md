@@ -30,7 +30,7 @@ planning/acteurs_planning/
 | :--- | :--- | :--- | :--- |
 | **👁️ Visiteur Anonyme (Guest)** | `is_authenticated = False` | Landing page (`/`), Connexion (`/auth/login/`), Inscription (`/auth/register/`), Reset password. | Aucun accès aux données ni au studio. |
 | **👤 Utilisateur Standard (User)**| `is_authenticated = True`<br>`is_staff = False` | Accès complet aux 6 étapes du studio ML, gestion de son profil, déconnexion sécurisée. | **Multi-Tenancy strict** : ne voit et n'édite que ses propres datasets et modèles. |
-| **🛡️ Administrateur (Admin)** | `is_staff = True`<br>`is_superuser = True` | Tout le studio + Panneau `/admin/` Django + Dashboard de supervision avec KPIs globaux. | Accès en lecture et modération sur tous les projets de la plateforme. |
+| **🛡️ Administrateur (Admin)** | `is_staff = True`<br>`is_superuser = True` | Tout le studio + **Interface SaaS de Gestion des Utilisateurs** (`/administration/users/`) intégrée dans la barre latérale + Panneau `/admin/` Django + Dashboard KPIs globaux. | Accès en lecture et modération sur tous les projets de la plateforme. |
 
 ---
 
@@ -41,6 +41,7 @@ planning/acteurs_planning/
    - **`/auth/register/`** : Inscription avec validation instantanée (HTMX) de l'unicité du nom d'utilisateur et de l'email, jauge de sécurité du mot de passe.
    - **`/auth/logout/`** : Déconnexion sécurisée par méthode HTTP **POST**, intégrée avec une modale de confirmation Alpine.js dans la **Sidebar** et la **Topbar**, avec purge complète de la session (`request.session.flush()`).
    - **`/auth/profile/`** : Gestion des informations personnelles, statistiques de l'utilisateur, changement de mot de passe et zone de danger.
+   - **`/administration/users/` (Admin SaaS)** : Page dédiée dans la barre latérale pour l'Administrateur permettant de lister, rechercher en direct (HTMX), filtrer, promouvoir/rétrograder des rôles, activer/désactiver des comptes et en créer de nouveaux via modale sans quitter le thème sombre du Studio.
 
 2. **Liaison 100% Base de Données (DB-Linked) :**
    - **`UserProfile`** : Table liée en relation 1-à-1 avec l'utilisateur pour stocker avatar, rôle et préférences.

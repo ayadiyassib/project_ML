@@ -154,7 +154,42 @@ Ce layout est spécialement conçu pour `/auth/login/`, `/auth/register/` et `/a
 
 ## 3. Évolution de la Navigation Interne (Sidebar & Topbar)
 
-### 3.1 Intégration de l'Utilisateur dans la Sidebar (`templates/components/sidebar.html`)
+### 3.1 Intégration de la Gestion Administrateur dans la Sidebar (`templates/components/sidebar.html`)
+
+Dans la barre latérale, nous ajoutons une section dédiée **"Administration"** positionnée avec élégance entre "Pipeline Studio" et "Ressources", visible **exclusivement pour les administrateurs** (`request.user.is_staff`) :
+
+```html
+<!-- Section Administration réservée à l'Admin dans la Sidebar -->
+{% if request.user.is_staff %}
+<div x-show="sidebarOpen" class="pt-5 pb-1 px-3 text-[9px] font-semibold tracking-label text-rose-400 uppercase flex items-center justify-between">
+    <span>Administration</span>
+    <span class="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+</div>
+
+<!-- Option 1 : Gestion des Utilisateurs -->
+<a href="{% url 'accounts:admin_users' %}" 
+   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'admin_users' in request.resolver_match.url_name %}bg-rose-500/10 text-rose-300 border border-rose-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
+    <svg class="w-5 h-5 shrink-0 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+    <span x-show="sidebarOpen" x-transition.opacity class="truncate">Gestion Utilisateurs</span>
+    <span x-show="sidebarOpen" class="ml-auto px-1.5 py-0.5 text-[9px] bg-rose-950/80 border border-rose-500/30 text-rose-300 rounded font-mono">Admin</span>
+</a>
+
+<!-- Option 2 : Django Admin Rapide -->
+<a href="{% url 'admin:index' %}" target="_blank"
+   class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-amber-300 hover:bg-slate-800/60 transition-colors">
+    <svg class="w-5 h-5 shrink-0 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+    </svg>
+    <span x-show="sidebarOpen" x-transition.opacity class="truncate">Panneau /admin</span>
+</a>
+{% endif %}
+```
+
+---
+
+### 3.2 Intégration de l'Utilisateur dans la Sidebar (`templates/components/sidebar.html`)
 Remplacement du simple pied de page textuel par la carte utilisateur interactive :
 
 ```html
@@ -295,4 +330,87 @@ Pour sécuriser la déconnexion par un `POST` et éviter les déconnexions invol
     </div>
 </div>
 ```
+
+---
+
+### 3.4 Template Complet de Gestion des Utilisateurs — `templates/accounts/admin/user_management.html`
+
+Cette vue SaaS permet à l'Admin de piloter tous les utilisateurs directement dans l'application avec recherche HTMX en direct et modales de gestion :
+
+```html
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Utilisateurs | ML Studio Admin{% endblock %}
+
+{% block content %}
+<div class="space-y-6" x-data="{ createModalOpen: false }">
+    
+    <!-- En-tête de la Page avec Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div>
+            <div class="flex items-center space-x-2">
+                <h1 class="text-2xl font-bold font-display text-white">Gestion des Utilisateurs</h1>
+                <span class="px-2 py-0.5 text-xs font-mono rounded bg-rose-500/10 text-rose-300 border border-rose-500/30">Admin SaaS</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Supervisez les comptes enregistrés, attribuez des rôles et gérez les accès à la plateforme.</p>
+        </div>
+
+        <button @click="createModalOpen = true" 
+                class="inline-flex items-center space-x-2 px-4 py-2 bg-[#B8323C] hover:bg-[#98262f] text-white text-xs font-medium rounded-lg transition-colors shadow">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Nouvel Utilisateur</span>
+        </button>
+    </div>
+
+    <!-- Barre de Recherche & Filtres HTMX -->
+    <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Recherche Instantanée -->
+        <div class="relative w-full md:w-96">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </span>
+            <input type="text" name="q" 
+                   hx-get="{% url 'accounts:admin_users_table' %}" 
+                   hx-trigger="keyup changed delay:300ms" 
+                   hx-target="#users-table-container"
+                   placeholder="Rechercher par nom, username ou email..." 
+                   class="w-full pl-9 pr-4 py-2 bg-[#141312] border border-[#2f2c2a] rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#B8323C] transition-colors">
+        </div>
+
+        <!-- Filtres par Rôle & Statut -->
+        <div class="flex items-center space-x-3 w-full md:w-auto">
+            <select name="role" 
+                    hx-get="{% url 'accounts:admin_users_table' %}" 
+                    hx-target="#users-table-container"
+                    class="bg-[#141312] border border-[#2f2c2a] text-xs text-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#B8323C]">
+                <option value="">Tous les rôles</option>
+                <option value="admin">Administrateurs</option>
+                <option value="user">Membres standard</option>
+            </select>
+            <select name="status" 
+                    hx-get="{% url 'accounts:admin_users_table' %}" 
+                    hx-target="#users-table-container"
+                    class="bg-[#141312] border border-[#2f2c2a] text-xs text-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#B8323C]">
+                <option value="">Tous les statuts</option>
+                <option value="active">Actifs</option>
+                <option value="inactive">Inactifs / Suspendus</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Conteneur Tableau des Utilisateurs (Cible HTMX) -->
+    <div id="users-table-container" class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl overflow-hidden shadow-xl">
+        {% include 'accounts/admin/partials/_users_table.html' %}
+    </div>
+
+    <!-- Modale Alpine.js de Création Rapide d'Utilisateur -->
+    {% include 'accounts/admin/partials/_create_user_modal.html' %}
+</div>
+{% endblock %}
+```
+
 

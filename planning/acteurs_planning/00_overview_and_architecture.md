@@ -50,8 +50,8 @@ flowchart TD
 
     subgraph Espace_Admin["Console Administrateur (Admin Only)"]
         AD1["📊 Dashboard Plateforme Enrichi (KPIs globaux)"]
-        AD2["🛠️ Django Admin (/admin/)"]
-        AD3["👥 Gestion des utilisateurs & permissions"]
+        AD2["👥 Gestion des Utilisateurs (/administration/users/)\n• Liste, Recherche HTMX & Filtres\n• Attribution Rôles (Admin/Membre)\n• Activation / Désactivation de compte\n• Création manuelle d'utilisateurs"]
+        AD3["🛠️ Django Admin Natif (/admin/)"]
         AD4["🗄️ Vue globale de tous les datasets & modèles"]
     end
 
@@ -131,7 +131,8 @@ flowchart TD
 | `/diagnostics/` | `model_viz:index` | ❌ ➡️ `/auth/login/` | ✅ Ses graphiques | ✅ Ses graphiques |
 | `/export/` | `export_inference:index`| ❌ ➡️ `/auth/login/` | ✅ Ses exports | ✅ Ses exports |
 | `/docs/` | `docs_tutorials:index` | ❌ ➡️ `/auth/login/` | ✅ Fiches & Tours | ✅ Fiches & Tours |
-| `/admin/` | `admin:index` | ❌ ➡️ `/auth/login/` | ⛔ Erreur 403 (Interdit) | ✅ Console complète |
+| `/administration/users/` | `accounts:admin_users` | ❌ ➡️ `/auth/login/` | ⛔ Erreur 403 (Interdit) | ✅ Interface SaaS Gestion Utilisateurs |
+| `/admin/` | `admin:index` | ❌ ➡️ `/auth/login/` | ⛔ Erreur 403 (Interdit) | ✅ Console complète Django |
 
 ---
 
