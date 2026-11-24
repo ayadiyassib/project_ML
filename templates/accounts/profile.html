@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil & Paramètres | ML Studio{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-8" x-data="{ deleteModalOpen: false }">
+
+    <!-- En-tête Profil -->
+    <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-2xl p-6 sm:p-8 shadow-xl flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+        <!-- Avatar Initiales Grand Format -->
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center font-display font-bold text-2xl text-white shadow-2xl shrink-0"
+             style="--avatar-color: {{ profile.avatar_color|default:'#B8323C' }}; background-color: var(--avatar-color);">
+            {{ profile.initials }}
+        </div>
+
+        <!-- Informations Utilisateur -->
+        <div class="flex-1 text-center sm:text-left">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                    <h1 class="font-display text-2xl font-bold text-white tracking-tight">
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    </h1>
+                    <p class="text-xs font-mono text-slate-400 mt-0.5">@{{ request.user.username }} &bull; {{ request.user.email }}</p>
+                </div>
+                <div class="flex items-center justify-center sm:justify-end space-x-2">
+                    {% if request.user.is_staff or request.user.is_superuser %}
+                        <span class="px-2.5 py-1 text-xs font-mono rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 flex items-center space-x-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                            <span>Administrateur</span>
+                        </span>
+                    {% else %}
+                        <span class="px-2.5 py-1 text-xs font-mono rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                            Membre Studio
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-slate-400">
+                <span class="flex items-center space-x-1.5">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span>{{ profile.organization|default:"Laboratoire ML" }}</span>
+                </span>
+                <span class="flex items-center space-x-1.5">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Inscrit le {{ request.user.date_joined|date:"d M Y" }}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques Personnelles (3 Cartes) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-5 shadow-lg flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-950/60 border border-indigo-700/40 flex items-center justify-center text-indigo-400 shrink-0">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16m-8 4v6m-3-3h6" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 uppercase tracking-wider font-medium">Datasets Importés</p>
+                <p class="text-2xl font-bold font-mono text-white mt-0.5">{{ stats.datasets_count }}</p>
+            </div>
+        </div>
+
+        <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-5 shadow-lg flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-950/60 border border-purple-700/40 flex items-center justify-center text-purple-400 shrink-0">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 uppercase tracking-wider font-medium">Modèles Entraînés</p>
+                <p class="text-2xl font-bold font-mono text-white mt-0.5">{{ stats.models_count }}</p>
+            </div>
+        </div>
+
+        <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-5 shadow-lg flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-700/40 flex items-center justify-center text-emerald-400 shrink-0">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 uppercase tracking-wider font-medium">Stockage Données</p>
+                <p class="text-2xl font-bold font-mono text-white mt-0.5">{{ stats.storage_human }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section des Formulaires (Grille 2 colonnes) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Formulaire Informations Personnelles -->
+        <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-2xl p-6 shadow-xl space-y-5">
+            <div class="border-b border-slate-800 pb-3">
+                <h2 class="text-base font-bold text-white font-display">Informations Personnelles</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Modifiez vos coordonnées et vos informations publiques</p>
+            </div>
+
+            <form method="post" action="{% url 'accounts:profile' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_profile">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Prénom</label>
+                        {{ profile_form.first_name }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Nom</label>
+                        {{ profile_form.last_name }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Adresse Email</label>
+                    {{ profile_form.email }}
+                    {% if profile_form.email.errors %}
+                        <p class="text-xs text-rose-400 mt-1">{{ profile_form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Organisation / Établissement</label>
+                    {{ profile_form.organization }}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Couleur de votre Avatar</label>
+                    <div class="flex items-center space-x-3">
+                        {{ profile_form.avatar_color }}
+                        <span class="text-xs text-slate-400 font-mono">Teinte hexadécimale</span>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                    <button type="submit" 
+                            class="px-4 py-2 bg-[#B8323C] hover:bg-[#98262f] text-white text-xs font-medium rounded-lg shadow transition-colors">
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Formulaire Modification de Mot de Passe -->
+        <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-2xl p-6 shadow-xl space-y-5">
+            <div class="border-b border-slate-800 pb-3">
+                <h2 class="text-base font-bold text-white font-display">Sécurité & Mot de Passe</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Mettez à jour votre mot de passe pour protéger votre compte</p>
+            </div>
+
+            <form method="post" action="{% url 'accounts:profile' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Mot de passe actuel</label>
+                    <input type="password" name="old_password" required
+                           class="w-full px-3.5 py-2 rounded-lg bg-[#141312] border border-[#2f2c2a] text-white text-sm focus:outline-none focus:border-[#B8323C]">
+                    {% if password_form.old_password.errors %}
+                        <p class="text-xs text-rose-400 mt-1">{{ password_form.old_password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Nouveau mot de passe</label>
+                    <input type="password" name="new_password1" required
+                           class="w-full px-3.5 py-2 rounded-lg bg-[#141312] border border-[#2f2c2a] text-white text-sm focus:outline-none focus:border-[#B8323C]">
+                    {% if password_form.new_password1.errors %}
+                        <p class="text-xs text-rose-400 mt-1">{{ password_form.new_password1.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Confirmer le nouveau mot de passe</label>
+                    <input type="password" name="new_password2" required
+                           class="w-full px-3.5 py-2 rounded-lg bg-[#141312] border border-[#2f2c2a] text-white text-sm focus:outline-none focus:border-[#B8323C]">
+                    {% if password_form.new_password2.errors %}
+                        <p class="text-xs text-rose-400 mt-1">{{ password_form.new_password2.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                    <button type="submit" 
+                            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium rounded-lg border border-slate-700 transition-colors shadow">
+                        Mettre à jour le mot de passe
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Zone de Danger (Suppression de Compte) -->
+    <div class="bg-[#1B1918] border border-rose-900/50 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-sm font-bold text-rose-400 flex items-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Zone de Danger</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">
+                    La suppression de votre compte effacera de manière irréversible tous vos jeux de données importés, vos modèles entraînés et vos logs d'activité.
+                </p>
+            </div>
+            <button type="button" @click="deleteModalOpen = true"
+                    class="px-4 py-2 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-700/60 text-xs font-medium rounded-lg transition-colors shrink-0">
+                Supprimer mon compte
+            </button>
+        </div>
+    </div>
+
+    <!-- Modale Alpine.js de Confirmation de Suppression de Compte -->
+    <div x-show="deleteModalOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div @click.outside="deleteModalOpen = false" 
+             class="w-full max-w-md bg-[#1B1918] border border-rose-900/60 rounded-2xl p-6 shadow-2xl">
+            <div class="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-600/40 flex items-center justify-center text-rose-400 mb-4">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-base font-bold text-white font-display mb-1">Suppression définitive de votre compte</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                Cette action est immédiate et irréversible. Pour confirmer, veuillez saisir votre mot de passe actuel ci-dessous.
+            </p>
+
+            <form method="post" action="{% url 'accounts:delete_account' %}" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Mot de passe de confirmation</label>
+                    <input type="password" name="confirm_password" required
+                           class="w-full px-3.5 py-2 rounded-lg bg-[#141312] border border-[#2f2c2a] text-white text-sm focus:outline-none focus:border-rose-500">
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-2">
+                    <button type="button" @click="deleteModalOpen = false"
+                            class="px-4 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 rounded-lg text-xs font-medium bg-rose-600 hover:bg-rose-700 text-white transition-colors shadow">
+                        Confirmer la suppression
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # ML Studio Core & Domain Apps
+    'apps.accounts.apps.AccountsConfig',
     'apps.core.apps.CoreConfig',
     'apps.datasets.apps.DatasetsConfig',
     'apps.preprocessing.apps.PreprocessingConfig',
@@ -118,5 +119,13 @@ SESSION_SAVE_EVERY_REQUEST = True
 # Upload limits (50 MB for datasets)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
+
+# Authentication & Redirects
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'core:dashboard'
+LOGOUT_REDIRECT_URL = 'core:landing'
+
+# Email backend for development / password reset
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

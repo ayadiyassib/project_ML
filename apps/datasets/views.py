@@ -8,10 +8,13 @@ so the main document is never reloaded when browsing rows.
 from __future__ import annotations
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from apps.accounts.decorators import studio_login_required
 from apps.datasets import services
 from apps.datasets.models import Dataset
 from apps.datasets.state import clear_active_dataset, get_active_dataset, set_active_dataset
@@ -43,7 +46,18 @@ def index_view(request: HttpRequest) -> HttpResponse:
             clear_active_dataset(request)
             dataset = None
 
-    recent = Dataset.objects.all()
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated and (user.is_staff or user.is_superuser):
+        recent = Dataset.objects.all().select_related("user")
+    elif user and user.is_authenticated:
+        recent = Dataset.objects.filter(
+            Q(user=user) | Q(source=Dataset.Source.SAMPLE) | Q(user__isnull=True)
+        )
+    else:
+        recent = Dataset.objects.filter(
+            Q(source=Dataset.Source.SAMPLE) | Q(user__isnull=True)
+        )
+
     if dataset is not None:
         recent = recent.exclude(pk=dataset.pk)
 
@@ -89,8 +103,12 @@ def _page_int(request: HttpRequest) -> int:
 @require_POST
 def upload_view(request: HttpRequest) -> HttpResponse:
     """Handle a CSV / TSV / JSON / Excel upload."""
+    user = getattr(request, "user", None)
     try:
-        dataset = services.create_dataset_from_upload(request.FILES.get("file"))
+        dataset = services.create_dataset_from_upload(
+            request.FILES.get("file"),
+            user=user if (user and user.is_authenticated) else None,
+        )
     except services.DatasetError as exc:
         messages.error(request, str(exc))
         return redirect("datasets:index")
@@ -126,8 +144,12 @@ def url_view(request: HttpRequest) -> HttpResponse:
         messages.error(request, "Veuillez saisir une URL.")
         return redirect("datasets:index")
 
+    user = getattr(request, "user", None)
     try:
-        dataset = services.create_dataset_from_url(url)
+        dataset = services.create_dataset_from_url(
+            url,
+            user=user if (user and user.is_authenticated) else None,
+        )
     except services.DatasetError as exc:
         messages.error(request, str(exc))
         return redirect("datasets:index")
@@ -140,7 +162,23 @@ def url_view(request: HttpRequest) -> HttpResponse:
 @require_POST
 def activate_view(request: HttpRequest, pk) -> HttpResponse:
     """Re-open a previously imported dataset."""
-    dataset = get_object_or_404(Dataset, pk=pk)
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated and (user.is_staff or user.is_superuser):
+        dataset = get_object_or_404(Dataset, pk=pk)
+    elif user and user.is_authenticated:
+        dataset = get_object_or_404(
+            Dataset.objects.filter(
+                Q(user=user) | Q(source=Dataset.Source.SAMPLE) | Q(user__isnull=True)
+            ),
+            pk=pk,
+        )
+    else:
+        dataset = get_object_or_404(
+            Dataset.objects.filter(
+                Q(source=Dataset.Source.SAMPLE) | Q(user__isnull=True)
+            ),
+            pk=pk,
+        )
     set_active_dataset(request, dataset)
     messages.success(request, f"« {dataset.name} » est maintenant le jeu de données actif.")
     return redirect("datasets:index")
@@ -150,6 +188,15 @@ def activate_view(request: HttpRequest, pk) -> HttpResponse:
 def delete_view(request: HttpRequest) -> HttpResponse:
     """Delete an imported dataset (and its file) from the workspace."""
     dataset = get_object_or_404(Dataset, pk=request.POST.get("dataset_id"))
+    user = getattr(request, "user", None)
+
+    # Only owner or admin can delete
+    is_staff = bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
+    is_owner = bool(user and user.is_authenticated and dataset.user_id == user.pk)
+    if not (is_staff or is_owner or dataset.user is None):
+        messages.error(request, "Vous n'avez pas l'autorisation de supprimer ce jeu de données.")
+        return redirect("datasets:index")
+
     name = dataset.name
     is_active = get_active_dataset(request) == dataset
 

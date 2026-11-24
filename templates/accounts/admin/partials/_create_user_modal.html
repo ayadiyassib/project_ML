@@ -1,0 +1,80 @@
+<!-- Modal Création Utilisateur Admin SaaS -->
+<div x-show="createModalOpen" x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div @click.outside="createModalOpen = false" 
+         class="w-full max-w-lg bg-[#1B1918] border border-[#2f2c2a] rounded-2xl p-6 shadow-2xl">
+        
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-lg bg-[#B8323C] flex items-center justify-center text-white">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-white font-display">Créer un nouvel utilisateur</h3>
+            </div>
+            <button type="button" @click="createModalOpen = false" class="text-slate-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <form method="post" action="{% url 'accounts:admin_create_user' %}" class="space-y-3.5">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Nom d'utilisateur *</label>
+                {{ create_form.username }}
+                {% if create_form.username.errors %}
+                    <p class="text-xs text-rose-400 mt-0.5">{{ create_form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Email *</label>
+                {{ create_form.email }}
+                {% if create_form.email.errors %}
+                    <p class="text-xs text-rose-400 mt-0.5">{{ create_form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Prénom</label>
+                    {{ create_form.first_name }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Nom</label>
+                    {{ create_form.last_name }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Rôle</label>
+                    {{ create_form.role }}
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Mot de passe initial *</label>
+                    {{ create_form.password }}
+                    {% if create_form.password.errors %}
+                        <p class="text-xs text-rose-400 mt-0.5">{{ create_form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
+                <button type="button" @click="createModalOpen = false"
+                        class="px-4 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 transition-colors">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-[#B8323C] hover:bg-[#98262f] text-white text-xs font-medium rounded-lg shadow transition-colors">
+                    Créer l'utilisateur
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+

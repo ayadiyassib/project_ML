@@ -36,13 +36,81 @@
         return el.offsetParent !== null && el.getClientRects().length > 0;
     }
 
+    function isLightMode() {
+        return document.documentElement.classList.contains("light") || !document.documentElement.classList.contains("dark");
+    }
+
+    function getThemeLayout(isLight) {
+        if (isLight) {
+            return {
+                "font.color": "#334155",
+                "hoverlabel.bgcolor": "#ffffff",
+                "hoverlabel.bordercolor": "#e2e8f0",
+                "hoverlabel.font.color": "#0f172a",
+                "legend.font.color": "#475569",
+                "xaxis.gridcolor": "rgba(0, 0, 0, 0.07)",
+                "xaxis.linecolor": "rgba(0, 0, 0, 0.15)",
+                "xaxis.tickcolor": "rgba(0, 0, 0, 0.15)",
+                "xaxis.tickfont.color": "#64748b",
+                "xaxis.title.font.color": "#334155",
+                "yaxis.gridcolor": "rgba(0, 0, 0, 0.07)",
+                "yaxis.linecolor": "rgba(0, 0, 0, 0.15)",
+                "yaxis.tickcolor": "rgba(0, 0, 0, 0.15)",
+                "yaxis.tickfont.color": "#64748b",
+                "yaxis.title.font.color": "#334155"
+            };
+        } else {
+            return {
+                "font.color": "#9B9388",
+                "hoverlabel.bgcolor": "#1b1918",
+                "hoverlabel.bordercolor": "#2f2c2a",
+                "hoverlabel.font.color": "#F3EDE2",
+                "legend.font.color": "#9B9388",
+                "xaxis.gridcolor": "rgba(255, 255, 255, 0.06)",
+                "xaxis.linecolor": "rgba(255, 255, 255, 0.12)",
+                "xaxis.tickcolor": "rgba(255, 255, 255, 0.12)",
+                "xaxis.tickfont.color": "#9B9388",
+                "xaxis.title.font.color": "#F3EDE2",
+                "yaxis.gridcolor": "rgba(255, 255, 255, 0.06)",
+                "yaxis.linecolor": "rgba(255, 255, 255, 0.12)",
+                "yaxis.tickcolor": "rgba(255, 255, 255, 0.12)",
+                "yaxis.tickfont.color": "#9B9388",
+                "yaxis.title.font.color": "#F3EDE2"
+            };
+        }
+    }
+
     function renderOne(el) {
         var source = document.getElementById(el.dataset.plotly);
         if (!source || !window.Plotly) { return; }
         try {
             var fig = JSON.parse(source.textContent);
             el.dataset.rendered = "1";
-            window.Plotly.newPlot(el, fig.data || [], fig.layout || {}, CONFIG);
+            var layout = fig.layout || {};
+            if (isLightMode()) {
+                layout.font = layout.font || {};
+                layout.font.color = "#334155";
+                if (layout.hoverlabel) {
+                    layout.hoverlabel.bgcolor = "#ffffff";
+                    layout.hoverlabel.bordercolor = "#e2e8f0";
+                    if (layout.hoverlabel.font) layout.hoverlabel.font.color = "#0f172a";
+                }
+                if (layout.xaxis) {
+                    layout.xaxis.gridcolor = "rgba(0, 0, 0, 0.07)";
+                    layout.xaxis.linecolor = "rgba(0, 0, 0, 0.15)";
+                    layout.xaxis.tickcolor = "rgba(0, 0, 0, 0.15)";
+                    if (layout.xaxis.tickfont) layout.xaxis.tickfont.color = "#64748b";
+                    if (layout.xaxis.title && layout.xaxis.title.font) layout.xaxis.title.font.color = "#334155";
+                }
+                if (layout.yaxis) {
+                    layout.yaxis.gridcolor = "rgba(0, 0, 0, 0.07)";
+                    layout.yaxis.linecolor = "rgba(0, 0, 0, 0.15)";
+                    layout.yaxis.tickcolor = "rgba(0, 0, 0, 0.15)";
+                    if (layout.yaxis.tickfont) layout.yaxis.tickfont.color = "#64748b";
+                    if (layout.yaxis.title && layout.yaxis.title.font) layout.yaxis.title.font.color = "#334155";
+                }
+            }
+            window.Plotly.newPlot(el, fig.data || [], layout, CONFIG);
             if (observer) { observer.observe(el); }
         } catch (err) {
             el.dataset.rendered = "error";
@@ -50,6 +118,33 @@
             if (window.console) { console.error("ml_charts:", err); }
         }
     }
+
+    function updateChartsTheme() {
+        if (!window.Plotly) { return; }
+        var isLight = isLightMode();
+        var update = getThemeLayout(isLight);
+        document.querySelectorAll('[data-plotly][data-rendered="1"]').forEach(function (el) {
+            try {
+                if (el.layout) {
+                    var elUpdate = Object.assign({}, update);
+                    Object.keys(el.layout).forEach(function (k) {
+                        if (/^[xy]axis\d+$/.test(k)) {
+                            elUpdate[k + ".gridcolor"] = isLight ? "rgba(0, 0, 0, 0.07)" : "rgba(255, 255, 255, 0.06)";
+                            elUpdate[k + ".linecolor"] = isLight ? "rgba(0, 0, 0, 0.15)" : "rgba(255, 255, 255, 0.12)";
+                            elUpdate[k + ".tickcolor"] = isLight ? "rgba(0, 0, 0, 0.15)" : "rgba(255, 255, 255, 0.12)";
+                            elUpdate[k + ".tickfont.color"] = isLight ? "#64748b" : "#9B9388";
+                            elUpdate[k + ".title.font.color"] = isLight ? "#334155" : "#F3EDE2";
+                        }
+                    });
+                    window.Plotly.relayout(el, elUpdate);
+                } else {
+                    window.Plotly.relayout(el, update);
+                }
+            } catch (err) {}
+        });
+    }
+
+    window.addEventListener("theme-changed", updateChartsTheme);
 
     function render(root) {
         var scope = root && root.querySelectorAll ? root : document;

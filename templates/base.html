@@ -1,9 +1,70 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+<html lang="fr" class="dark" x-data="{ 
+    sidebarOpen: (function() {
+        try {
+            return localStorage.getItem('ml_studio_sidebar') !== 'closed';
+        } catch(e) {
+            return true;
+        }
+    })(),
+    currentTheme: (function() {
+        try {
+            return localStorage.getItem('ml_studio_theme') || 'dark';
+        } catch(e) {
+            return 'dark';
+        }
+    })(),
+    toggleSidebar() {
+        this.sidebarOpen = !this.sidebarOpen;
+        try {
+            if (this.sidebarOpen) {
+                document.documentElement.classList.remove('sidebar-is-closed');
+                localStorage.setItem('ml_studio_sidebar', 'open');
+            } else {
+                document.documentElement.classList.add('sidebar-is-closed');
+                localStorage.setItem('ml_studio_sidebar', 'closed');
+            }
+        } catch(e) {}
+    },
+    toggleTheme() {
+        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+        try {
+            if (this.currentTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                localStorage.setItem('ml_studio_theme', 'light');
+            } else {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('ml_studio_theme', 'dark');
+            }
+            window.dispatchEvent(new Event('theme-changed'));
+        } catch(e) {}
+    }
+}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ML Studio | Atelier Machine Learning Polyvalent{% endblock %}</title>
+
+    <!-- Synchronous anti-flicker pre-check before first paint (Theme & Sidebar) -->
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('ml_studio_theme');
+                if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                }
+                if (localStorage.getItem('ml_studio_sidebar') === 'closed') {
+                    document.documentElement.classList.add('sidebar-is-closed');
+                }
+            } catch(e) {}
+        })();
+    </script>
 
     <!-- Google Fonts: Shippori Mincho (display) + Noto Sans JP (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -186,6 +247,33 @@
 
     <style>
         [x-cloak] { display: none !important; }
+
+        /* Zero-flicker immediate sidebar rendering */
+        html.sidebar-is-closed #main-sidebar {
+            width: 5rem !important; /* 80px */
+        }
+        html.sidebar-is-closed #main-sidebar .sidebar-open-only {
+            display: none !important;
+        }
+        html.sidebar-is-closed #main-sidebar .sidebar-closed-only:not(.border-t) {
+            display: flex !important;
+        }
+        html.sidebar-is-closed #main-sidebar .sidebar-closed-only.border-t {
+            display: block !important;
+        }
+
+        html:not(.sidebar-is-closed) #main-sidebar {
+            width: 16rem !important; /* 256px */
+        }
+        html:not(.sidebar-is-closed) #main-sidebar .sidebar-closed-only {
+            display: none !important;
+        }
+
+        /* Smooth transition strictly enabled ONLY after mount / user click */
+        #main-sidebar.sidebar-ready {
+            transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #111010; }
@@ -199,6 +287,324 @@
         h1 { font-family: 'Shippori Mincho', Georgia, serif; letter-spacing: 0.01em; }
         /* Flat paper grain: no gradients anywhere in this system */
         body { background-color: #111010; }
+
+        /* ==================================================================
+           LIGHT THEME ADAPTATION (100% Comprehensive Pure CSS Architecture)
+           Applies seamlessly whenever <html> is light (or not .dark)
+           ================================================================== */
+        html:not(.dark),
+        html.light {
+            color-scheme: light;
+        }
+
+        html:not(.dark) body,
+        html.light body {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+        }
+
+        /* Layout Surfaces (Sidebar & Topbar) */
+        html:not(.dark) #main-sidebar,
+        html:not(.dark) header,
+        html.light #main-sidebar,
+        html.light header {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Card Surfaces (All studio modules, Hero, Leaderboard, EDA figures) */
+        html:not(.dark) .bg-\[\#1b1918\],
+        html:not(.dark) .bg-\[\#1B1918\],
+        html:not(.dark) .bg-\[\#111010\],
+        html:not(.dark) .bg-\[\#0f0e0e\],
+        html.light .bg-\[\#1b1918\],
+        html.light .bg-\[\#1B1918\],
+        html.light .bg-\[\#111010\],
+        html.light .bg-\[\#0f0e0e\] {
+            background-color: #ffffff !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        /* Subtle Wells, Secondary Sections & Group Boxes */
+        html:not(.dark) .bg-\[\#141312\],
+        html:not(.dark) .bg-\[\#121110\],
+        html:not(.dark) .bg-\[\#171514\],
+        html:not(.dark) .bg-slate-950,
+        html:not(.dark) .bg-slate-900,
+        html:not(.dark) .bg-slate-900\/90,
+        html:not(.dark) .bg-slate-900\/80,
+        html:not(.dark) .bg-slate-900\/60,
+        html:not(.dark) .bg-slate-900\/40,
+        html.light .bg-\[\#141312\],
+        html.light .bg-\[\#121110\],
+        html.light .bg-\[\#171514\],
+        html.light .bg-slate-950,
+        html.light .bg-slate-900,
+        html.light .bg-slate-900\/90,
+        html.light .bg-slate-900\/80,
+        html.light .bg-slate-900\/60,
+        html.light .bg-slate-900\/40 {
+            background-color: #f8fafc !important;
+        }
+
+        html:not(.dark) .bg-slate-800,
+        html:not(.dark) .bg-slate-800\/80,
+        html:not(.dark) .bg-slate-800\/60,
+        html:not(.dark) .bg-slate-800\/50,
+        html:not(.dark) .bg-slate-800\/40,
+        html.light .bg-slate-800,
+        html.light .bg-slate-800\/80,
+        html.light .bg-slate-800\/60,
+        html.light .bg-slate-800\/50,
+        html.light .bg-slate-800\/40 {
+            background-color: #f1f5f9 !important;
+        }
+
+        /* Border Framework */
+        html:not(.dark) .border-\[\#2f2c2a\],
+        html:not(.dark) .border-slate-800,
+        html:not(.dark) .border-slate-800\/80,
+        html:not(.dark) .border-slate-800\/90,
+        html:not(.dark) .border-slate-800\/60,
+        html.light .border-\[\#2f2c2a\],
+        html.light .border-slate-800,
+        html.light .border-slate-800\/80,
+        html.light .border-slate-800\/90,
+        html.light .border-slate-800\/60 {
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) .border-slate-700,
+        html:not(.dark) .border-slate-700\/80,
+        html:not(.dark) .border-slate-700\/70,
+        html:not(.dark) .border-slate-700\/60,
+        html.light .border-slate-700,
+        html.light .border-slate-700\/80,
+        html.light .border-slate-700\/70,
+        html.light .border-slate-700\/60 {
+            border-color: #cbd5e1 !important;
+        }
+
+        /* Text & Ink Hierarchies */
+        html:not(.dark) .text-paper,
+        html:not(.dark) .text-slate-100,
+        html:not(.dark) .text-slate-200,
+        html.light .text-paper,
+        html.light .text-slate-100,
+        html.light .text-slate-200 {
+            color: #0f172a !important;
+        }
+
+        /* Faint grey text utility classes become crisp readable dark slate */
+        html:not(.dark) .text-slate-300,
+        html:not(.dark) .text-slate-400,
+        html.light .text-slate-300,
+        html.light .text-slate-400 {
+            color: #334155 !important;
+        }
+
+        html:not(.dark) .text-slate-500,
+        html:not(.dark) .text-slate-600,
+        html.light .text-slate-500,
+        html.light .text-slate-600 {
+            color: #475569 !important;
+        }
+
+        /* Ensure text is clear and never faded by opacity in light mode */
+        html:not(.dark) [class*="opacity-"]:not(.animate-ping),
+        html.light [class*="opacity-"]:not(.animate-ping) {
+            opacity: 1 !important;
+        }
+
+        /* Headings & Title ink in light mode */
+        html:not(.dark) h1.text-white,
+        html:not(.dark) h2.text-white,
+        html:not(.dark) h3.text-white,
+        html:not(.dark) h4.text-white,
+        html:not(.dark) p.text-white,
+        html:not(.dark) strong.text-white,
+        html.light h1.text-white,
+        html.light h2.text-white,
+        html.light h3.text-white,
+        html.light h4.text-white,
+        html.light p.text-white,
+        html.light strong.text-white {
+            color: #0f172a !important;
+        }
+
+        /* Wiki / Documentation Article Content in Light Mode */
+        html:not(.dark) .prose-dark h1,
+        html.light .prose-dark h1 {
+            color: #0f172a !important;
+        }
+        html:not(.dark) .prose-dark h2,
+        html.light .prose-dark h2 {
+            color: #0f172a !important;
+            border-color: #e2e8f0 !important;
+        }
+        html:not(.dark) .prose-dark h3,
+        html.light .prose-dark h3 {
+            color: #1e293b !important;
+        }
+        html:not(.dark) .prose-dark p,
+        html:not(.dark) .prose-dark li,
+        html:not(.dark) .prose-dark ul,
+        html:not(.dark) .prose-dark ol,
+        html.light .prose-dark p,
+        html.light .prose-dark li,
+        html.light .prose-dark ul,
+        html.light .prose-dark ol {
+            color: #334155 !important;
+        }
+        html:not(.dark) .prose-dark hr,
+        html.light .prose-dark hr {
+            border-color: #e2e8f0 !important;
+        }
+        html:not(.dark) .prose-dark pre,
+        html.light .prose-dark pre {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+
+        /* Form Controls: Selects, Inputs, Textareas across all modules */
+        html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]),
+        html:not(.dark) select,
+        html:not(.dark) textarea,
+        html.light input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]),
+        html.light select,
+        html.light textarea {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) select option,
+        html.light select option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) input::placeholder,
+        html:not(.dark) textarea::placeholder,
+        html.light input::placeholder,
+        html.light textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        /* Tables & Grid Data */
+        html:not(.dark) thead th,
+        html.light thead th {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) tbody td,
+        html.light tbody td {
+            border-color: #f1f5f9 !important;
+            color: #1e293b !important;
+        }
+
+        html:not(.dark) tbody tr:hover,
+        html.light tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        /* Dialogs, Modals (Guide Rapide, Logout, Admin Modals) */
+        html:not(.dark) [role="dialog"] .bg-\[\#1b1918\],
+        html:not(.dark) [role="dialog"] .bg-\[\#1B1918\],
+        html.light [role="dialog"] .bg-\[\#1b1918\],
+        html.light [role="dialog"] .bg-\[\#1B1918\] {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #0f172a !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        html:not(.dark) [role="dialog"] .bg-slate-900,
+        html.light [role="dialog"] .bg-slate-900 {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) [role="dialog"] p,
+        html:not(.dark) [role="dialog"] span:not(.animate-ping),
+        html:not(.dark) [role="dialog"] li,
+        html.light [role="dialog"] p,
+        html.light [role="dialog"] span:not(.animate-ping),
+        html.light [role="dialog"] li {
+            color: #334155 !important;
+        }
+
+        html:not(.dark) [role="dialog"] strong,
+        html:not(.dark) [role="dialog"] h1,
+        html:not(.dark) [role="dialog"] h2,
+        html:not(.dark) [role="dialog"] h3,
+        html.light [role="dialog"] strong,
+        html.light [role="dialog"] h1,
+        html.light [role="dialog"] h2,
+        html.light [role="dialog"] h3 {
+            color: #0f172a !important;
+        }
+
+        /* Ensure primary colored buttons always retain clean white text in both modes */
+        html:not(.dark) .bg-indigo-600,
+        html:not(.dark) .bg-indigo-600 *,
+        html:not(.dark) .bg-\[\#B8323C\],
+        html:not(.dark) .bg-\[\#B8323C\] *,
+        html:not(.dark) .bg-emerald-600,
+        html:not(.dark) .bg-emerald-600 *,
+        html:not(.dark) .bg-rose-600,
+        html:not(.dark) .bg-rose-600 *,
+        html.light .bg-indigo-600,
+        html.light .bg-indigo-600 *,
+        html.light .bg-\[\#B8323C\],
+        html.light .bg-\[\#B8323C\] *,
+        html.light .bg-emerald-600,
+        html.light .bg-emerald-600 *,
+        html.light .bg-rose-600,
+        html.light .bg-rose-600 * {
+            color: #ffffff !important;
+        }
+
+        /* Anti-flicker classes for Theme Switcher */
+        html.dark .theme-icon-light { display: none !important; }
+        html.light .theme-icon-dark { display: none !important; }
+        html:not(.dark) .theme-icon-dark { display: none !important; }
+        html.light .theme-pill-track { background-color: #4f46e5 !important; }
+        html.light .theme-pill-thumb { transform: translateX(1rem) !important; }
+
+        /* Light Mode Hover Interactions */
+        html:not(.dark) .hover\:bg-slate-800:hover,
+        html:not(.dark) .hover\:bg-slate-800\/60:hover,
+        html:not(.dark) .hover\:bg-slate-800\/80:hover,
+        html.light .hover\:bg-slate-800:hover,
+        html.light .hover\:bg-slate-800\/60:hover,
+        html.light .hover\:bg-slate-800\/80:hover {
+            background-color: #f1f5f9 !important;
+        }
+
+        html:not(.dark) .hover\:text-white:hover,
+        html:not(.dark) .hover\:text-slate-200:hover,
+        html.light .hover\:text-white:hover,
+        html.light .hover\:text-slate-200:hover {
+            color: #0f172a !important;
+        }
+
+        /* Scrollbars in Light Mode */
+        html:not(.dark) ::-webkit-scrollbar-track,
+        html.light ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        html:not(.dark) ::-webkit-scrollbar-thumb,
+        html.light ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+        }
+        html:not(.dark) ::-webkit-scrollbar-thumb:hover,
+        html.light ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -227,6 +633,9 @@
 
     <!-- Interactive Onboarding Modal -->
     {% include 'components/onboarding_modal.html' %}
+
+    <!-- Logout Confirmation Modal -->
+    {% include 'components/logout_modal.html' %}
 
     {% block extra_scripts %}{% endblock %}
 </body>

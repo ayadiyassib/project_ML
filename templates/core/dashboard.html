@@ -41,6 +41,47 @@
         </div>
     </div>
 
+    {% if admin_stats %}
+    <!-- 🛡️ Section Métriques Globales Administrateur -->
+    <div class="bg-[#1B1918] border border-rose-500/25 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div class="flex items-center space-x-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <h2 class="text-base font-bold font-display text-white">Supervision Plateforme (Admin SaaS)</h2>
+            </div>
+            <a href="{% url 'accounts:admin_users' %}" 
+               class="inline-flex items-center space-x-2 text-xs font-medium text-rose-300 hover:text-white bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 px-3 py-1.5 rounded-lg transition-colors w-fit">
+                <span>Console Gestion Utilisateurs</span>
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="p-3 rounded-xl bg-[#141312] border border-[#2f2c2a]">
+                <p class="text-[10px] uppercase font-mono text-slate-400">Utilisateurs</p>
+                <p class="text-xl font-bold font-mono text-white mt-0.5">{{ admin_stats.total_users }}</p>
+            </div>
+            <div class="p-3 rounded-xl bg-[#141312] border border-[#2f2c2a]">
+                <p class="text-[10px] uppercase font-mono text-emerald-400">Actifs</p>
+                <p class="text-xl font-bold font-mono text-emerald-300 mt-0.5">{{ admin_stats.active_users }}</p>
+            </div>
+            <div class="p-3 rounded-xl bg-[#141312] border border-[#2f2c2a]">
+                <p class="text-[10px] uppercase font-mono text-indigo-400">Datasets</p>
+                <p class="text-xl font-bold font-mono text-indigo-300 mt-0.5">{{ admin_stats.total_datasets }}</p>
+            </div>
+            <div class="p-3 rounded-xl bg-[#141312] border border-[#2f2c2a]">
+                <p class="text-[10px] uppercase font-mono text-purple-400">Modèles</p>
+                <p class="text-xl font-bold font-mono text-purple-300 mt-0.5">{{ admin_stats.total_models }}</p>
+            </div>
+            <div class="p-3 rounded-xl bg-[#141312] border border-[#2f2c2a] col-span-2 md:col-span-1">
+                <p class="text-[10px] uppercase font-mono text-slate-400">Stockage Disque</p>
+                <p class="text-xl font-bold font-mono text-white mt-0.5">{{ admin_stats.storage_used_human }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Active Session Overview Card -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Status Card 1: Dataset -->

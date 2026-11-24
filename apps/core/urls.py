@@ -4,7 +4,8 @@ from apps.core import views
 app_name = "core"
 
 urlpatterns = [
-    path("", views.dashboard_view, name="dashboard"),
+    path("", views.root_view, name="landing"),
+    path("dashboard/", views.dashboard_view, name="dashboard"),
     path("reset-session/", views.reset_session_view, name="reset_session"),
 ]
 

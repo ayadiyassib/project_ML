@@ -16,6 +16,19 @@
     .prose-dark pre code { background-color: transparent; padding: 0; color: inherit; }
     .prose-dark hr { border-color: #3a3634; margin: 2rem 0; }
     .prose-dark blockquote { border-left: 4px solid #B8323C; padding-left: 1rem; font-style: italic; color: #9B9388; margin: 1.5rem 0; background: #2b0d101a; padding: 0.75rem 1rem; border-radius: 0.5rem; }
+
+    /* Light mode adaptations for documentation */
+    html:not(.dark) .prose-dark h1, html.light .prose-dark h1 { color: #0f172a !important; }
+    html:not(.dark) .prose-dark h2, html.light .prose-dark h2 { color: #0f172a !important; border-bottom-color: #e2e8f0 !important; }
+    html:not(.dark) .prose-dark h3, html.light .prose-dark h3 { color: #1e293b !important; }
+    html:not(.dark) .prose-dark p, html.light .prose-dark p { color: #1e293b !important; }
+    html:not(.dark) .prose-dark ul, html.light .prose-dark ul { color: #1e293b !important; }
+    html:not(.dark) .prose-dark ol, html.light .prose-dark ol { color: #1e293b !important; }
+    html:not(.dark) .prose-dark li, html.light .prose-dark li { color: #1e293b !important; }
+    html:not(.dark) .prose-dark hr, html.light .prose-dark hr { border-color: #e2e8f0 !important; }
+    html:not(.dark) .prose-dark pre, html.light .prose-dark pre { background-color: #f8fafc !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
+    html:not(.dark) .prose-dark code, html.light .prose-dark code { background-color: #f1f5f9 !important; color: #B8323C !important; }
+    html:not(.dark) .prose-dark blockquote, html.light .prose-dark blockquote { color: #475569 !important; background: #fdf2f2 !important; border-left-color: #B8323C !important; }
 </style>
 {% endblock %}
 

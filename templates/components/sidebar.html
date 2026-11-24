@@ -1,34 +1,63 @@
-<!-- Sidebar Navigation (Style Notion / Linear) -->
-<aside :class="sidebarOpen ? 'w-64' : 'w-20'" 
-       class="w-64 transition-all duration-300 ease-in-out bg-[#0f0e0e] border-r border-slate-800/80 flex flex-col justify-between shrink-0 z-30 select-none">
+<!-- Sidebar Navigation (Style Notion / Linear - Rigid Axis & Zero Layout Shift) -->
+<aside id="main-sidebar"
+       x-data="{ ready: false }"
+       x-init="$nextTick(() => { setTimeout(() => { ready = true; }, 100); })"
+       :class="{
+           'w-64': sidebarOpen,
+           'w-20': !sidebarOpen,
+           'sidebar-ready': ready
+       }"
+       class="w-64 bg-[#0f0e0e] border-r border-slate-800/80 flex flex-col justify-between shrink-0 z-30 select-none h-screen sticky top-0 overflow-hidden">
     
-    <!-- Top Branding & Workspace -->
-    <div class="p-4">
-        <!-- Logo and Collapse Toggle -->
-        <div class="flex items-center justify-between mb-6">
-            <a href="{% url 'core:dashboard' %}" class="flex items-center space-x-3 overflow-hidden">
-                <div class="w-9 h-9 rounded-[2px] bg-indigo-600 flex items-center justify-center shrink-0">
+    <!-- Top Branding, Active Dataset & Navigation Container -->
+    <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col px-5 py-4">
+        
+        <!-- Header: Logo & Collapse / Expand Toggle -->
+        <div class="mb-5">
+            <!-- Mode Ouvert : Logo + Titre + Bouton Réduire -->
+            <div x-show="sidebarOpen" class="sidebar-open-only flex items-center justify-between h-10">
+                <a href="{% url 'core:dashboard' %}" class="flex items-center min-w-0 group">
+                    <div class="w-10 h-10 rounded-[3px] bg-indigo-600 flex items-center justify-center shrink-0 shadow-sm group-hover:opacity-90 transition-opacity">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <div class="flex flex-col ml-3 min-w-0 whitespace-nowrap overflow-hidden">
+                        <span class="font-display font-semibold tracking-wide text-paper text-[15px] leading-tight truncate">ML Studio</span>
+                        <span class="text-[9px] text-indigo-400 font-mono tracking-label uppercase truncate">AutoML Platform</span>
+                    </div>
+                </a>
+                <button @click="toggleSidebar()" 
+                        title="Réduire la barre latérale"
+                        type="button"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Mode Replié : Logo fixe sur le même axe + Bouton Développer centré juste en dessous -->
+            <div x-show="!sidebarOpen" class="sidebar-closed-only flex flex-col items-center space-y-2">
+                <a href="{% url 'core:dashboard' %}" title="ML Studio - AutoML Platform" class="w-10 h-10 rounded-[3px] bg-indigo-600 flex items-center justify-center shrink-0 shadow-sm hover:opacity-90 transition-opacity">
                     <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                </div>
-                <div x-show="sidebarOpen" x-transition.opacity class="flex flex-col">
-                    <span class="font-display font-semibold tracking-wide text-paper text-[15px] leading-tight">ML Studio</span>
-                    <span class="text-[9px] text-indigo-400 font-mono tracking-label uppercase">AutoML Platform</span>
-                </div>
-            </a>
-            <button @click="sidebarOpen = !sidebarOpen" 
-                    title="Basculer la barre latérale"
-                    class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" 
-                          :class="!sidebarOpen && 'rotate-180 transform transition-transform duration-300'" />
-                </svg>
-            </button>
+                </a>
+                <button @click="toggleSidebar()" 
+                        title="Développer la barre latérale"
+                        type="button"
+                        class="w-10 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <!-- Current Active Dataset Widget in Sidebar -->
-        <div x-show="sidebarOpen" x-transition.opacity class="mb-5 p-3 rounded-xl bg-slate-900/90 border border-slate-800/80">
+        <!-- Quand ouvert : Vue complète détaillée -->
+        <div x-show="sidebarOpen" class="sidebar-open-only mb-5 p-3 rounded-xl bg-slate-900/90 border border-slate-800/80">
             <div class="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1">
                 <span>Dataset actif</span>
                 {% if project.dataset_name %}
@@ -50,99 +79,297 @@
             {% endif %}
         </div>
 
+        <!-- Quand fermé : Mini-indicateur centré sur l'axe avec tooltip -->
+        <div x-show="!sidebarOpen" class="sidebar-closed-only flex justify-center mb-4">
+            <div title="Dataset actif : {{ project.dataset_name|default:'Aucun dataset chargé' }}{% if project.dataset_name %} ({{ project.total_rows }} lignes, {{ project.total_cols }} col.){% endif %}" 
+                 class="w-10 h-10 rounded-lg bg-slate-900/90 border border-slate-800/80 flex items-center justify-center relative cursor-default hover:border-slate-700 transition-colors shrink-0">
+                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16" />
+                </svg>
+                {% if project.dataset_name %}
+                <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Navigation Sections -->
         <nav class="space-y-1">
             <!-- Dashboard -->
             <a href="{% url 'core:dashboard' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">Dashboard</span>
+               title="Tableau de bord"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">Dashboard</span>
             </a>
 
-            <div x-show="sidebarOpen" class="pt-4 pb-1 px-3 text-[9px] font-semibold tracking-label text-slate-500 uppercase">
+            <!-- Section Label / Divider: Pipeline Studio -->
+            <div x-show="sidebarOpen" class="sidebar-open-only pt-4 pb-1 px-1 text-[9px] font-semibold tracking-label text-slate-500 uppercase whitespace-nowrap">
                 Pipeline Studio
             </div>
+            <div x-show="!sidebarOpen" class="sidebar-closed-only my-2 border-t border-slate-800/60"></div>
 
             <!-- 1. Datasets -->
             <a href="{% url 'datasets:index' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'datasets' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16m-8 4v6m-3-3h6" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">1. Datasets & Ingestion</span>
+               title="1. Datasets & Ingestion"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'datasets' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16m-8 4v6m-3-3h6" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">1. Datasets & Ingestion</span>
             </a>
 
             <!-- 2. EDA -->
             <a href="{% url 'eda:index' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'eda' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">2. Exploration (EDA)</span>
+               title="2. Exploration (EDA)"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'eda' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">2. Exploration (EDA)</span>
             </a>
 
             <!-- 3. Preprocessing -->
             <a href="{% url 'preprocessing:index' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'preprocessing' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">3. Prétraitement</span>
+               title="3. Prétraitement"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'preprocessing' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">3. Prétraitement</span>
             </a>
 
             <!-- 4. ML Engine -->
             <a href="{% url 'ml_engine:index' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'ml_engine' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">4. Modélisation ML</span>
+               title="4. Modélisation ML"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'ml_engine' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">4. Modélisation ML</span>
             </a>
 
             <!-- 5. Diagnostics -->
             <a href="{% url 'model_viz:index' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'model_viz' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">5. Diagnostics & Viz</span>
+               title="5. Diagnostics & Visualisation"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'model_viz' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">5. Diagnostics & Viz</span>
             </a>
 
             <!-- 6. Export & Inference -->
             <a href="{% url 'export_inference:index' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'export_inference' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">6. Export & Inférence</span>
+               title="6. Export & Inférence"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'export_inference' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">6. Export & Inférence</span>
             </a>
 
-            <div x-show="sidebarOpen" class="pt-4 pb-1 px-3 text-[9px] font-semibold tracking-label text-slate-500 uppercase">
+            <!-- Section Administration (Admin Only) -->
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <div x-show="sidebarOpen" class="sidebar-open-only pt-4 pb-1 px-1 text-[9px] font-semibold tracking-label text-rose-400 uppercase flex items-center justify-between whitespace-nowrap">
+                <span>Administration</span>
+                <span class="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+            </div>
+            <div x-show="!sidebarOpen" class="sidebar-closed-only my-2 border-t border-slate-800/60"></div>
+
+            <!-- Option 1 : Gestion des Utilisateurs -->
+            <a href="{% url 'accounts:admin_users' %}" 
+               title="Gestion des Utilisateurs"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'admin_users' in request.resolver_match.url_name %}bg-rose-500/10 text-rose-300 border border-rose-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">Gestion Utilisateurs</span>
+                <span x-show="sidebarOpen" class="sidebar-open-only ml-auto px-1.5 py-0.5 text-[9px] bg-rose-950/80 border border-rose-500/30 text-rose-300 rounded font-mono">Admin</span>
+            </a>
+
+            <!-- Option 2 : Django Admin Rapide -->
+            <a href="{% url 'admin:index' %}" target="_blank"
+               title="Panneau d'administration Django"
+               class="flex items-center h-10 rounded-lg font-medium text-sm text-slate-400 hover:text-amber-300 hover:bg-slate-800/60 border border-transparent transition-colors">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">Panneau /admin</span>
+            </a>
+            {% endif %}
+
+            <!-- Section Label / Divider: Ressources -->
+            <div x-show="sidebarOpen" class="sidebar-open-only pt-4 pb-1 px-1 text-[9px] font-semibold tracking-label text-slate-500 uppercase whitespace-nowrap">
                 Ressources
             </div>
+            <div x-show="!sidebarOpen" class="sidebar-closed-only my-2 border-t border-slate-800/60"></div>
 
             <!-- Documentation / Tutorials -->
             <a href="{% url 'docs_tutorials:index' %}" 
-               class="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if 'docs_tutorials' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60{% endif %}">
-                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span x-show="sidebarOpen" x-transition.opacity class="truncate">Documentation & Wiki</span>
+               title="Documentation & Wiki"
+               class="flex items-center h-10 rounded-lg font-medium text-sm transition-colors {% if 'docs_tutorials' in request.resolver_match.namespaces %}bg-indigo-500/10 text-indigo-300 border border-indigo-500/25{% else %}text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent{% endif %}">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen" class="sidebar-open-only truncate whitespace-nowrap ml-2 text-sm">Documentation & Wiki</span>
             </a>
         </nav>
     </div>
 
-    <!-- Bottom Footer in Sidebar -->
-    <div class="p-4 border-t border-slate-800/80">
-        <div x-show="sidebarOpen" x-transition.opacity class="flex items-center justify-between text-xs text-slate-500">
-            <span class="flex items-center space-x-2">
-                <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
-                <span>Django 5.1 &bull; Python</span>
-            </span>
-            <span class="font-mono text-[10px]">v1.0</span>
+    <!-- Sélecteur de Thème Sombre / Clair (Pied de Sidebar) -->
+    <div class="px-5 py-2.5 border-t border-slate-800/80 bg-[#0f0e0e] shrink-0">
+        <!-- État OUVERT : Ligne complète avec icône, titre et switch interactif -->
+        <div x-show="sidebarOpen" class="sidebar-open-only flex items-center justify-between h-10">
+            <button type="button" 
+                    @click="toggleTheme()"
+                    class="flex items-center min-w-0 group flex-1 focus:outline-none text-left"
+                    :title="currentTheme === 'dark' ? 'Passer en Mode Clair' : 'Passer en Mode Sombre'">
+                <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                    <!-- Icône Mode Sombre (Lune) -->
+                    <svg x-show="currentTheme === 'dark'" class="theme-icon-dark w-4 h-4 text-amber-300 transition-transform group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <!-- Icône Mode Clair (Soleil) -->
+                    <svg x-show="currentTheme === 'light'" class="theme-icon-light w-4 h-4 text-amber-500 transition-transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <div class="flex flex-col ml-2 min-w-0 whitespace-nowrap overflow-hidden">
+                    <span class="text-xs font-semibold text-slate-200 group-hover:text-white transition-colors truncate"
+                          x-text="currentTheme === 'dark' ? 'Mode Sombre' : 'Mode Clair'">
+                        Mode Sombre
+                    </span>
+                    <span class="text-[9px] font-mono tracking-wider uppercase text-slate-500 truncate">
+                        Thème
+                    </span>
+                </div>
+            </button>
+
+            <!-- Switch Interactif Pill Toggle -->
+            <button type="button" 
+                    @click="toggleTheme()" 
+                    role="switch" 
+                    :aria-checked="currentTheme === 'light'"
+                    :title="currentTheme === 'dark' ? 'Passer en Mode Clair' : 'Passer en Mode Sombre'"
+                    class="theme-pill-track relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    :class="currentTheme === 'light' ? 'bg-indigo-600' : 'bg-slate-700/80'">
+                <span class="sr-only">Changer de thème</span>
+                <span aria-hidden="true" 
+                      class="theme-pill-thumb pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
+                      :class="currentTheme === 'light' ? 'translate-x-4' : 'translate-x-0'"></span>
+            </button>
+        </div>
+
+        <!-- État FERMÉ : Bouton 40x40px centré sur l'axe vertical -->
+        <div x-show="!sidebarOpen" class="sidebar-closed-only flex justify-center">
+            <button type="button" 
+                    @click="toggleTheme()"
+                    :title="currentTheme === 'dark' ? 'Mode Sombre actif (cliquer pour Mode Clair)' : 'Mode Clair actif (cliquer pour Mode Sombre)'"
+                    class="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-amber-400 hover:bg-slate-800/80 transition-colors shrink-0">
+                <svg x-show="currentTheme === 'dark'" class="theme-icon-dark w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <svg x-show="currentTheme === 'light'" class="theme-icon-light w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </button>
         </div>
     </div>
-</aside>
 
+    <!-- Carte Utilisateur en Pied de Sidebar -->
+    <div class="px-5 py-3 border-t border-slate-800/80 bg-[#141312] shrink-0">
+        {% if request.user.is_authenticated %}
+            <!-- État OUVERT : Avatar + Identité + Déconnexion sur la même ligne -->
+            <div x-show="sidebarOpen" class="sidebar-open-only flex items-center justify-between h-10">
+                <a href="{% url 'accounts:profile' %}" class="flex items-center min-w-0 group flex-1 mr-2">
+                    <div class="w-10 h-10 flex items-center justify-center shrink-0">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 shadow"
+                             style="--avatar-color: {{ avatar_color|default:'#B8323C' }}; background-color: var(--avatar-color);">
+                            {{ user_initials }}
+                        </div>
+                    </div>
+                    <div class="flex flex-col ml-2 min-w-0 whitespace-nowrap overflow-hidden">
+                        <span class="text-xs font-semibold text-slate-200 truncate group-hover:text-white transition-colors">
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </span>
+                        <span class="text-[9px] font-mono tracking-wider uppercase truncate {% if is_admin %}text-rose-400{% else %}text-indigo-400{% endif %}">
+                            {{ user_role_label }}
+                        </span>
+                    </div>
+                </a>
+
+                <button type="button" 
+                        @click="$dispatch('open-logout-modal')"
+                        title="Se déconnecter"
+                        class="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- État FERMÉ : Avatar fixe sur l'axe + Déconnexion centrée en dessous -->
+            <div x-show="!sidebarOpen" class="sidebar-closed-only flex flex-col items-center space-y-2">
+                <a href="{% url 'accounts:profile' %}" 
+                   title="{{ request.user.get_full_name|default:request.user.username }} ({{ user_role_label }})" 
+                   class="w-10 h-10 flex items-center justify-center group shrink-0">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 shadow ring-1 ring-white/10 group-hover:ring-indigo-500 transition-all"
+                         style="--avatar-color: {{ avatar_color|default:'#B8323C' }}; background-color: var(--avatar-color);">
+                        {{ user_initials }}
+                    </div>
+                </a>
+
+                <button type="button" 
+                        @click="$dispatch('open-logout-modal')"
+                        title="Se déconnecter"
+                        class="w-10 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+        {% else %}
+            <!-- Déconnecté : Bouton Connexion -->
+            <div x-show="sidebarOpen" class="sidebar-open-only">
+                <a href="{% url 'accounts:login' %}" 
+                   class="flex items-center justify-center space-x-2 py-2 px-3 bg-[#B8323C] hover:bg-[#98262f] text-white text-xs font-medium rounded-lg transition-colors w-full">
+                    <span>Connexion</span>
+                </a>
+            </div>
+            <div x-show="!sidebarOpen" class="sidebar-closed-only flex justify-center">
+                <a href="{% url 'accounts:login' %}" 
+                   title="Se connecter"
+                   class="w-10 h-10 rounded-lg flex items-center justify-center bg-[#B8323C] hover:bg-[#98262f] text-white transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</aside>

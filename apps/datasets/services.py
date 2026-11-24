@@ -361,6 +361,7 @@ def create_dataset_from_file(
     name: str | None = None,
     size_bytes: int | None = None,
     task_hint: str = "",
+    user: Any = None,
 ) -> Dataset:
     """Persist an uploaded or downloaded file and profile it."""
     suffix = Path(filename).suffix.lower()
@@ -370,7 +371,9 @@ def create_dataset_from_file(
             f"Formats acceptés : {', '.join(SUPPORTED_EXTENSIONS)}."
         )
 
+    dataset_user = user if (user and getattr(user, "is_authenticated", False)) else None
     dataset = Dataset(
+        user=dataset_user,
         name=name or Path(filename).name,
         original_filename=Path(filename).name,
         source=source,
@@ -386,7 +389,7 @@ def create_dataset_from_file(
         raise
 
 
-def create_dataset_from_upload(uploaded_file) -> Dataset:
+def create_dataset_from_upload(uploaded_file, user: Any = None) -> Dataset:
     """Validate an ``UploadedFile`` and import it."""
     if uploaded_file is None:
         raise DatasetError("Aucun fichier reçu.")
@@ -400,16 +403,18 @@ def create_dataset_from_upload(uploaded_file) -> Dataset:
         filename=uploaded_file.name,
         source=Dataset.Source.UPLOAD,
         size_bytes=uploaded_file.size,
+        user=user,
     )
 
 
-def create_dataset_from_url(url: str) -> Dataset:
+def create_dataset_from_url(url: str, user: Any = None) -> Dataset:
     content, filename = read_from_url(url)
     return create_dataset_from_file(
         file_obj=io.BytesIO(content),
         filename=filename,
         source=Dataset.Source.URL,
         size_bytes=len(content),
+        user=user,
     )
 
 

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark" x-data="{ 
+    currentTheme: (function() {
+        try {
+            return localStorage.getItem('ml_studio_theme') || 'dark';
+        } catch(e) {
+            return 'dark';
+        }
+    })(),
+    toggleTheme() {
+        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+        try {
+            if (this.currentTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                localStorage.setItem('ml_studio_theme', 'light');
+            } else {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('ml_studio_theme', 'dark');
+            }
+        } catch(e) {}
+    }
+}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Authentification | ML Studio{% endblock %}</title>
+
+    <!-- Synchronous anti-flicker pre-check before first paint -->
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('ml_studio_theme');
+                if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                }
+            } catch(e) {}
+        })();
+    </script>
+
+    <!-- Google Fonts: Shippori Mincho (display) + Noto Sans JP (body) + JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN standalone with Omakase config) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'Inter', 'sans-serif'],
+                        display: ['"Shippori Mincho"', 'Georgia', 'serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            50: '#faf7f0',
+                            100: '#F3EDE2',
+                            200: '#e2dbcd',
+                            300: '#c9c1b4',
+                            400: '#9B9388',
+                            500: '#756e66',
+                            600: '#4f4a46',
+                            700: '#2f2c2a',
+                            800: '#262322',
+                            900: '#141312',
+                            950: '#0b0a0a',
+                        },
+                        indigo: {
+                            50: '#f9ecec',
+                            100: '#f1d6d7',
+                            200: '#e4b0b2',
+                            300: '#d68a8e',
+                            400: '#cf6d73',
+                            500: '#c1454e',
+                            600: '#B8323C',
+                            700: '#98262f',
+                            800: '#6f1c22',
+                            900: '#4a1418',
+                            950: '#2b0d10',
+                        },
+                        paper: '#F3EDE2',
+                        ume: '#B8323C',
+                        sumi: { DEFAULT: '#1B1918', line: '#2f2c2a' },
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- HTMX and Alpine.js -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.13.10/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        html.dark .theme-icon-light { display: none !important; }
+        html.light .theme-icon-dark { display: none !important; }
+        html:not(.dark) .theme-icon-dark { display: none !important; }
+
+        /* Light Theme Styles for Auth */
+        html:not(.dark),
+        html.light {
+            color-scheme: light;
+        }
+
+        html:not(.dark) body,
+        html.light body {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) header,
+        html.light header {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) .bg-\[\#1B1918\],
+        html.light .bg-\[\#1B1918\] {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01) !important;
+        }
+
+        html:not(.dark) .bg-\[\#141312\],
+        html.light .bg-\[\#141312\] {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+        html.light input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) input::placeholder,
+        html.light input::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        html:not(.dark) .border-\[\#2f2c2a\],
+        html:not(.dark) .border-slate-900\/60,
+        html.light .border-\[\#2f2c2a\],
+        html.light .border-slate-900\/60 {
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) .text-paper,
+        html.light .text-paper {
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) .text-slate-300,
+        html.light .text-slate-300 {
+            color: #334155 !important;
+        }
+
+        html:not(.dark) .text-slate-400,
+        html.light .text-slate-400 {
+            color: #475569 !important;
+        }
+
+        html:not(.dark) h1,
+        html.light h1 {
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) .bg-\[\#B8323C\],
+        html:not(.dark) .bg-\[\#B8323C\] *,
+        html.light .bg-\[\#B8323C\],
+        html.light .bg-\[\#B8323C\] * {
+            color: #ffffff !important;
+        }
+
+        html:not(.dark) footer,
+        html.light footer {
+            border-color: #e2e8f0 !important;
+            color: #64748b !important;
+        }
+    </style>
+</head>
+<body class="bg-[#111010] text-slate-100 min-h-screen flex flex-col justify-between antialiased selection:bg-[#B8323C] selection:text-white"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+    <!-- Header minimaliste -->
+    <header class="py-6 px-8 flex items-center justify-between border-b border-slate-900/60">
+        <a href="{% url 'core:landing' %}" class="flex items-center space-x-3 group">
+            <div class="w-9 h-9 rounded-[2px] bg-[#B8323C] flex items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-display font-semibold tracking-wide text-paper text-lg">ML Studio</span>
+                <span class="text-[9px] text-[#B8323C] font-mono tracking-wider uppercase">AutoML Platform</span>
+            </div>
+        </a>
+        <div class="flex items-center space-x-4 text-xs text-slate-400">
+            <!-- Bouton Thème Sombre / Clair -->
+            <button type="button" 
+                    @click="toggleTheme()"
+                    :title="currentTheme === 'dark' ? 'Passer en Mode Clair' : 'Passer en Mode Sombre'"
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 border border-slate-800/80 transition-colors">
+                <svg x-show="currentTheme === 'dark'" class="theme-icon-dark w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+                <svg x-show="currentTheme === 'light'" class="theme-icon-light w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </button>
+            <div>
+                {% block header_action %}{% endblock %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Notifications -->
+    {% include 'components/toasts.html' %}
+
+    <!-- Contenu Principal Centré -->
+    <main class="flex-1 flex items-center justify-center px-4 py-8">
+        <div class="w-full max-w-md bg-[#1B1918] border border-[#2f2c2a] rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+            {% block auth_content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Pied de Page -->
+    <footer class="py-4 text-center text-xs text-slate-500 border-t border-slate-900/60">
+        &copy; 2026 ML Studio &bull; Plateforme AutoML 100% Python &bull; Conçu pour Master ML
+    </footer>
+</body>
+</html>
+

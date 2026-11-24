@@ -13,6 +13,17 @@
     .prose-dark li { margin-bottom: 0.4rem; }
     .prose-dark hr { border-color: #3a3634; margin: 2rem 0; }
     .prose-dark code { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #d68a8e; background-color: #2a2726; padding: 0.15rem 0.35rem; border-radius: 0.35rem; }
+
+    /* Light mode adaptations for tutorials */
+    html:not(.dark) .prose-dark h1, html.light .prose-dark h1 { color: #0f172a !important; }
+    html:not(.dark) .prose-dark h2, html.light .prose-dark h2 { color: #0f172a !important; border-bottom-color: #e2e8f0 !important; }
+    html:not(.dark) .prose-dark h3, html.light .prose-dark h3 { color: #1e293b !important; }
+    html:not(.dark) .prose-dark p, html.light .prose-dark p { color: #1e293b !important; }
+    html:not(.dark) .prose-dark ul, html.light .prose-dark ul { color: #1e293b !important; }
+    html:not(.dark) .prose-dark ol, html.light .prose-dark ol { color: #1e293b !important; }
+    html:not(.dark) .prose-dark li, html.light .prose-dark li { color: #1e293b !important; }
+    html:not(.dark) .prose-dark hr, html.light .prose-dark hr { border-color: #e2e8f0 !important; }
+    html:not(.dark) .prose-dark code, html.light .prose-dark code { background-color: #f1f5f9 !important; color: #B8323C !important; }
 </style>
 {% endblock %}
 

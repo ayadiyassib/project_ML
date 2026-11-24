@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark" x-data="{ 
+    currentTheme: (function() {
+        try {
+            return localStorage.getItem('ml_studio_theme') || 'dark';
+        } catch(e) {
+            return 'dark';
+        }
+    })(),
+    toggleTheme() {
+        this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+        try {
+            if (this.currentTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                localStorage.setItem('ml_studio_theme', 'light');
+            } else {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('ml_studio_theme', 'dark');
+            }
+        } catch(e) {}
+    }
+}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Studio | Plateforme AutoML & Atelier Machine Learning Polyvalent</title>
+
+    <!-- Synchronous anti-flicker pre-check before first paint -->
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('ml_studio_theme');
+                if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                }
+            } catch(e) {}
+        })();
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'Inter', 'sans-serif'],
+                        display: ['"Shippori Mincho"', 'Georgia', 'serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            50: '#faf7f0',
+                            100: '#F3EDE2',
+                            200: '#e2dbcd',
+                            300: '#c9c1b4',
+                            400: '#9B9388',
+                            500: '#756e66',
+                            600: '#4f4a46',
+                            700: '#2f2c2a',
+                            800: '#262322',
+                            900: '#141312',
+                            950: '#0b0a0a',
+                        },
+                        indigo: {
+                            50: '#f9ecec',
+                            100: '#f1d6d7',
+                            200: '#e4b0b2',
+                            300: '#d68a8e',
+                            400: '#cf6d73',
+                            500: '#c1454e',
+                            600: '#B8323C',
+                            700: '#98262f',
+                            800: '#6f1c22',
+                            900: '#4a1418',
+                            950: '#2b0d10',
+                        },
+                        paper: '#F3EDE2',
+                        ume: '#B8323C',
+                        sumi: { DEFAULT: '#1B1918', line: '#2f2c2a' },
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.13.10/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        html.dark .theme-icon-light { display: none !important; }
+        html.light .theme-icon-dark { display: none !important; }
+        html:not(.dark) .theme-icon-dark { display: none !important; }
+
+        /* Light Theme Adaptation for Landing Page */
+        html:not(.dark),
+        html.light {
+            color-scheme: light;
+        }
+
+        html:not(.dark) body,
+        html.light body {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) header,
+        html.light header {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) section.bg-\[\#0f0e0e\],
+        html.light section.bg-\[\#0f0e0e\] {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) .bg-\[\#1B1918\],
+        html.light .bg-\[\#1B1918\] {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        html:not(.dark) .bg-\[\#141312\],
+        html.light .bg-\[\#141312\] {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) .bg-slate-900,
+        html.light .bg-slate-900 {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+            color: #334155 !important;
+        }
+
+        html:not(.dark) .border-\[\#2f2c2a\],
+        html:not(.dark) .border-slate-900,
+        html:not(.dark) .border-slate-900\/80,
+        html:not(.dark) .border-slate-800,
+        html:not(.dark) .border-slate-800\/80,
+        html.light .border-\[\#2f2c2a\],
+        html.light .border-slate-900,
+        html.light .border-slate-900\/80,
+        html.light .border-slate-800,
+        html.light .border-slate-800\/80 {
+            border-color: #e2e8f0 !important;
+        }
+
+        html:not(.dark) .text-paper,
+        html.light .text-paper {
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) .text-slate-400,
+        html.light .text-slate-400 {
+            color: #475569 !important;
+        }
+
+        html:not(.dark) .text-slate-300,
+        html.light .text-slate-300 {
+            color: #334155 !important;
+        }
+
+        html:not(.dark) h1,
+        html:not(.dark) h2,
+        html:not(.dark) h3,
+        html.light h1,
+        html.light h2,
+        html.light h3 {
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) p.text-white,
+        html:not(.dark) span.text-white,
+        html.light p.text-white,
+        html.light span.text-white {
+            color: #0f172a !important;
+        }
+
+        /* Action Buttons */
+        html:not(.dark) .bg-\[\#B8323C\],
+        html:not(.dark) .bg-\[\#B8323C\] *,
+        html.light .bg-\[\#B8323C\],
+        html.light .bg-\[\#B8323C\] * {
+            color: #ffffff !important;
+        }
+
+        html:not(.dark) .hover\:bg-slate-800\/60:hover,
+        html.light .hover\:bg-slate-800\/60:hover {
+            background-color: #f1f5f9 !important;
+        }
+
+        html:not(.dark) .hover\:text-white:hover,
+        html.light .hover\:text-white:hover {
+            color: #0f172a !important;
+        }
+
+        html:not(.dark) footer,
+        html.light footer {
+            border-color: #e2e8f0 !important;
+            color: #64748b !important;
+        }
+    </style>
+</head>
+<body class="bg-[#111010] text-slate-100 min-h-screen flex flex-col justify-between antialiased selection:bg-[#B8323C] selection:text-white">
+
+    <!-- En-tête Navigation -->
+    <header class="border-b border-slate-900/80 bg-[#111010]/90 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="{% url 'core:landing' %}" class="flex items-center space-x-3 group">
+                <div class="w-9 h-9 rounded-[2px] bg-[#B8323C] flex items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-display font-semibold tracking-wide text-paper text-lg">ML Studio</span>
+                    <span class="text-[9px] text-[#B8323C] font-mono tracking-wider uppercase">AutoML Platform &bull; Master ML</span>
+                </div>
+            </a>
+
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <!-- Bouton Thème Sombre / Clair -->
+                <button type="button" 
+                        @click="toggleTheme()"
+                        :title="currentTheme === 'dark' ? 'Passer en Mode Clair' : 'Passer en Mode Sombre'"
+                        class="p-2 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 border border-slate-800/80 transition-colors">
+                    <svg x-show="currentTheme === 'dark'" class="theme-icon-dark w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <svg x-show="currentTheme === 'light'" class="theme-icon-light w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+
+                <a href="{% url 'accounts:login' %}" 
+                   class="text-xs font-medium text-slate-300 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-slate-800/60">
+                    Connexion
+                </a>
+                <a href="{% url 'accounts:register' %}" 
+                   class="text-xs font-medium text-white bg-[#B8323C] hover:bg-[#98262f] px-4 py-2 rounded-lg transition-all shadow-lg hover:shadow-rose-950/40">
+                    Commencer &rarr;
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="flex-1">
+        <section class="max-w-7xl mx-auto px-6 pt-16 pb-20 text-center lg:pt-24 lg:pb-28">
+            <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium mb-6">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Écosystème 100% Python &bull; Django 5.x &bull; Zéro dépendance Node.js</span>
+            </div>
+
+            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-paper tracking-tight max-w-4xl mx-auto leading-tight">
+                L'Atelier Machine Learning Polyvalent & Intuitif
+            </h1>
+
+            <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mt-6 leading-relaxed">
+                De l'ingestion de vos données brutes à l'inférence en direct, configurez et entraînez 
+                <span class="text-white font-medium">11 familles d'algorithmes</span>, visualisez les diagnostics en temps réel et exportez vos modèles complets.
+            </p>
+
+            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="{% url 'accounts:register' %}" 
+                   class="w-full sm:w-auto px-6 py-3.5 bg-[#B8323C] hover:bg-[#98262f] text-white text-sm font-medium rounded-xl shadow-xl transition-all flex items-center justify-center space-x-2">
+                    <span>Créer un compte gratuit</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
+                <a href="{% url 'accounts:login' %}" 
+                   class="w-full sm:w-auto px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-sm font-medium rounded-xl transition-colors">
+                    Accéder à mon espace
+                </a>
+            </div>
+
+            <!-- Pipeline 6 Étapes Preview -->
+            <div class="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-left">
+                <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono text-[#B8323C]">01</span>
+                    <h3 class="text-xs font-semibold text-white mt-1">Ingestion</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">CSV, XLSX, JSON, URL et jeux de démo.</p>
+                </div>
+                <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono text-[#B8323C]">02</span>
+                    <h3 class="text-xs font-semibold text-white mt-1">Exploration EDA</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Statistiques & graphiques Plotly interactifs.</p>
+                </div>
+                <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono text-[#B8323C]">03</span>
+                    <h3 class="text-xs font-semibold text-white mt-1">Prétraitement</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Imputation, encoding et scalers sans fuite.</p>
+                </div>
+                <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono text-[#B8323C]">04</span>
+                    <h3 class="text-xs font-semibold text-white mt-1">Modélisation</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">11 algorithmes ML et K-Fold validation.</p>
+                </div>
+                <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono text-[#B8323C]">05</span>
+                    <h3 class="text-xs font-semibold text-white mt-1">Diagnostics</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">ROC, Matrices de confusion, Résidus, PCA.</p>
+                </div>
+                <div class="bg-[#1B1918] border border-[#2f2c2a] rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono text-[#B8323C]">06</span>
+                    <h3 class="text-xs font-semibold text-white mt-1">Inférence & Export</h3>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Pipelines .joblib et rapports PDF exécutifs.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Algorithmes Inclus -->
+        <section class="border-t border-slate-900 bg-[#0f0e0e] py-16">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-[#B8323C]">Arsenal Mathématique</h2>
+                    <p class="font-display text-2xl font-bold text-white mt-1">11 Algorithmes Scikit-Learn Intégrés</p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">Régression Linéaire</p>
+                        <p class="text-slate-400 text-[11px]">Simple, multiple & polynomiale</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">Régression Logistique</p>
+                        <p class="text-slate-400 text-[11px]">Binaire & multi-classes avec L1/L2</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">Arbres de Décision</p>
+                        <p class="text-slate-400 text-[11px]">Classifier & Regressor (Gini / Entropy)</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">Forêts Aléatoires</p>
+                        <p class="text-slate-400 text-[11px]">Ensemble learning & feature importance</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">Support Vector Machines</p>
+                        <p class="text-slate-400 text-[11px]">SVC & SVR (linéaire, RBF, poly)</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">K-Plus Proches Voisins</p>
+                        <p class="text-slate-400 text-[11px]">KNN Classifier & Regressor</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">Naïve Bayes</p>
+                        <p class="text-slate-400 text-[11px]">GaussianNB & MultinomialNB</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-[#141312] border border-[#2f2c2a]">
+                        <p class="font-semibold text-white">K-Means & MLP</p>
+                        <p class="text-slate-400 text-[11px]">Clustering & Réseaux de neurones</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pied de Page -->
+    <footer class="py-8 text-center text-xs text-slate-500 border-t border-slate-900">
+        <p>&copy; 2026 ML Studio &bull; Conçu pour le Master Machine Learning &bull; 100% Python &bull; Django 5.x</p>
+    </footer>
+</body>
+</html>
+

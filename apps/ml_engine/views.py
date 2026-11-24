@@ -11,9 +11,12 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.accounts.models import UserActivityLog
+from apps.accounts.services import get_client_ip, log_user_activity
 from apps.datasets.state import get_active_dataset, update_state
 from apps.preprocessing.services import load_prepared
 from apps.ml_engine.algorithms.registry import ModelRegistry
+from apps.ml_engine.models import TrainedModel
 from apps.ml_engine.services import (
     MLEngineError,
     get_available_algorithms,
@@ -149,6 +152,24 @@ def train_view(request: HttpRequest) -> HttpResponse:
             best_score=result.summary_score,
             active_step=4,
         )
+
+        # 🗄️ Persistance en base de données (100% DB-Linked)
+        if request.user.is_authenticated:
+            TrainedModel.objects.create(
+                user=request.user,
+                dataset=dataset,
+                name=result.algo_name,
+                algorithm_key=algo_key,
+                task_type=prepared.task_type,
+                hyperparameters=params,
+                metrics=result.test_metrics or result.train_metrics or {},
+            )
+            log_user_activity(
+                request.user,
+                UserActivityLog.ActionChoices.TRAIN_MODEL,
+                ip=get_client_ip(request),
+                details=f"Entraînement réussi : {result.algo_name}",
+            )
 
         messages.success(
             request,

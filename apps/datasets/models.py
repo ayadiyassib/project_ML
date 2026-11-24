@@ -12,6 +12,7 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 
+from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -26,6 +27,14 @@ class Dataset(models.Model):
         URL = "url", "URL distante"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="datasets",
+        null=True,
+        blank=True,
+        help_text="Propriétaire du dataset. Si vide, il s'agit d'un jeu de démonstration partagé.",
+    )
     name = models.CharField("nom affiché", max_length=200)
     original_filename = models.CharField(max_length=255, blank=True)
     file = models.FileField(upload_to="datasets/%Y/%m/")

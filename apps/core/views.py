@@ -1,16 +1,33 @@
 """
-Core Views for ML Studio Dashboard and Workspace Management.
+Core Views for ML Studio Dashboard, Landing Page, and Workspace Management.
 """
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.db.models import Sum
 from django.views.decorators.http import require_POST
+from apps.accounts.decorators import studio_login_required
 from apps.core.context_processors import DEFAULT_PROJECT_STATE
+from apps.datasets.models import Dataset, human_size
+from apps.ml_engine.models import TrainedModel
 
 
+def root_view(request):
+    """
+    Public landing page for anonymous visitors,
+    or redirect to dashboard for logged-in users.
+    """
+    if request.user.is_authenticated:
+        return redirect("core:dashboard")
+    return render(request, "core/landing.html")
+
+
+@studio_login_required
 def dashboard_view(request):
     """
     Renders the main Studio overview dashboard.
+    Enriched with platform-wide KPIs when viewed by an administrator.
     """
     state = request.session.get("project_state", DEFAULT_PROJECT_STATE)
     
@@ -69,6 +86,19 @@ def dashboard_view(request):
             },
         ],
     }
+
+    # 🛡️ Injection des statistiques globales pour l'Administrateur
+    if request.user.is_staff or request.user.is_superuser:
+        total_storage = Dataset.objects.aggregate(total=Sum("size_bytes"))["total"] or 0
+        context["admin_stats"] = {
+            "total_users": User.objects.count(),
+            "active_users": User.objects.filter(is_active=True).count(),
+            "total_datasets": Dataset.objects.count(),
+            "total_models": TrainedModel.objects.count(),
+            "storage_used_bytes": total_storage,
+            "storage_used_human": human_size(total_storage),
+        }
+
     return render(request, "core/dashboard.html", context)
 
 
